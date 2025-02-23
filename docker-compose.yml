@@ -1,0 +1,71 @@
+services:
+  app:
+    image: nmdra/finance-api
+    build:
+      context: .
+      target: development 
+    container_name: Finance-API
+    ports:
+      - "5000:5000"
+    # volumes:
+    #   - .:/app  
+    env_file:
+      - .env
+    command: npm run dev
+    develop:
+      watch:
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: package-lock.json
+        - action: sync+restart
+          path: server.js
+          target: /app/server.js
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules
+    depends_on:
+      - db
+    networks:
+      - financeAPI-network
+
+  db:
+    image: mongo
+    container_name: Finance-db
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - financeAPI-network
+
+  db-dashboard:
+    image: mongo-express:latest
+    container_name: DB-Dashboard
+    restart: on-failure
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://${DB_USERNAME}:${DB_PASSWORD}@db:27017/mydatabase?authSource=admin"
+      ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
+      ME_CONFIG_BASICAUTH_USERNAME: ${DB_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - financeAPI-network
+
+volumes:
+  dbdata: 
+    external: true
+
+networks:
+  financeAPI-network:
+    name: financeAPI-network
+    driver: bridge

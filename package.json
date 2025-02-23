@@ -1,0 +1,39 @@
+{
+  "name": "finance-tracker-api",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/nmdra/Finance-Tracker-API#readme",
+  "bugs": {
+    "url": "https://github.com/nmdra/Finance-Tracker-API/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nmdra/Finance-Tracker-API.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon -L --verbose --env-file=.env server.js",
+    "watch": "node --watch --env-file=.env server",
+    "start": "node --env-file=.env server.js"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.2.0",
+    "express": "^4.21.2",
+    "mongoose": "^8.10.1",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^13.0.0",
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.5.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.6",
+    "eslint": "^9.5.0",
+    "globals": "^15.6.0"
+  }
+}
