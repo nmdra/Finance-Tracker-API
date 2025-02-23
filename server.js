@@ -1,7 +1,11 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
+
 import connectDB from './config/db.js'
 import { logger, httpLogger } from "./middleware/logger.js"
-import healthRoutes from "./routes/health.js";
+import healthRoutes from "./routes/v1/health.js";
+import { errorHandler, notFound } from './middleware/errorMiddleware.js'
+import userRoute from './routes/v1/user.js'
 
 const PORT = process.env.PORT || 5000
 
@@ -13,9 +17,17 @@ const app = express()
 // Apply middleware
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 app.use(httpLogger)
 
-app.use("/health", healthRoutes)
+// API Versioning
+const API_VERSION = process.env.API_VERSION;
+
+app.use(`/api/${API_VERSION}/health`, healthRoutes)
+app.use(`/api/${API_VERSION}/user`, userRoute)
+
+app.use(notFound) // Handle 404 Not Found
+app.use(errorHandler) // Error handler middleware
 
 // Start the server
 app.listen(PORT, () => {
