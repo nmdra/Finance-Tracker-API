@@ -7,8 +7,6 @@ services:
     container_name: Finance-API
     ports:
       - "5000:5000"
-    # volumes:
-    #   - .:/app  
     env_file:
       - .env
     command: npm run dev
@@ -35,6 +33,7 @@ services:
     image: mongo
     container_name: Finance-db
     restart: on-failure
+    command: mongod --quiet --logpath /dev/null # Change this on production
     env_file:
       - .env
     environment:
