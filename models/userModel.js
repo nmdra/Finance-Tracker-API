@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
     {
         firstname: {
             type: String,
-            required: false,
+            required: [true, 'Username not Provided']
         },
         lastname: {
             type: String,
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
         },
         birthday: {
             type: Date,
-            required: false, // Ensure birth date is provided
+            required: false,
         },
         isVerified: {
             type: Boolean,

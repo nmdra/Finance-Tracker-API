@@ -13,24 +13,23 @@ const logger = pino({
 
 const httpLogger = pinoHttp({
     customLogLevel: (req, res, err) => {
-        // Set log levels based on response status code
-        if (res.statusCode >= 500) return 'error'; // Log errors for server issues
-        if (res.statusCode >= 400) return 'warn'; // Log warnings for client issues
+        if (res.statusCode >= 500) return 'error';
+        if (res.statusCode >= 400) return 'warn';
         return 'info';
     },
 
     serializers: {
         req(req) {
             return {
-                method: req.method,  // Log only the HTTP method
-                url: req.url,        // Log only the request URL
-                query: req.query,                       // Log query parameters
-                params: req.params                      // Log route parameters
+                method: req.method,
+                url: req.url,
+                query: req.query,
+                params: req.params
             };
         },
         res(res) {
             return {
-                statusCode: res.statusCode // Log only the status code
+                statusCode: res.statusCode
             };
         }
     },
