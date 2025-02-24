@@ -4,7 +4,7 @@ import { generateToken } from '../utils/generateToken.js'
 
 
 // @desc    Register a new user
-// @route   POST /api/users
+// @route   POST /api/v1/user
 // @access  Public
 export const registerUser = async (req, res, next) => {
     const {
@@ -59,6 +59,9 @@ export const registerUser = async (req, res, next) => {
     }
 }
 
+// @desc    update user
+// @route   PUT /api/v1/user
+// @access  Private
 export const updateUser = async (req, res, next) => {
     const {
         firstname,
@@ -97,14 +100,6 @@ export const updateUser = async (req, res, next) => {
                 message: 'User updated successfully',
                 user: {
                     _id: updatedUser._id,
-                    name: updatedUser.name,
-                    firstname: updatedUser.firstname,
-                    lastname: updatedUser.lastname,
-                    email: updatedUser.email,
-                    defaultAddress: updatedUser.defaultAddress,
-                    contactNumber: updatedUser.contactNumber,
-                    pic: updatedUser.pic,
-                    birthday: updatedUser.birthday,
                 },
             })
         } else {
@@ -117,13 +112,13 @@ export const updateUser = async (req, res, next) => {
 }
 
 // @desc    Auth user & get token
-// @route   POST /api/users/auth
+// @route   POST /api/v1/user/auth
 // @access  Public
 export const authUser = async (req, res, next) => {
     const { email, password } = req.body
     try {
         if (!email || !password) {
-            res.status(400)
+            res.status(StatusCodes.BAD_REQUEST)
             throw new Error('Email and password are required')
         }
         const user = await User.findOne({ email })
@@ -139,7 +134,7 @@ export const authUser = async (req, res, next) => {
                 _id: user._id,
             })
         } else {
-            res.status(401).json({ message: 'Invalid Password or Email' })
+            res.status(StatusCodes.BAD_REQUEST).json({ message: 'Invalid Password or Email' })
         }
     } catch (error) {
         return next(error)
@@ -147,7 +142,7 @@ export const authUser = async (req, res, next) => {
 }
 
 // @desc    Logout user / clear cookie
-// @route   POST /api/users/logout
+// @route   POST /api/v1/user/logout
 // @access  Public
 export const logoutUser = (_req, res) => {
     res.cookie('jwt', '', {
@@ -158,11 +153,11 @@ export const logoutUser = (_req, res) => {
 }
 
 // @desc    Get user by ID
-// @route   GET /api/users/:id
+// @route   GET /api/v1/user/:id
 // @access  Private/Admin
 export const getUserById = async (req, res, next) => {
     if (req.user.membershipType !== 'admin') {
-        return res.status(403).json('Unauthorized')
+        return res.status(StatusCodes.UNAUTHORIZED).json('Unauthorized')
     }
 
     try {
@@ -171,7 +166,7 @@ export const getUserById = async (req, res, next) => {
         if (user) {
             res.json(user)
         } else {
-            return res.status(404).json('User not found')
+            return res.status(StatusCodes.NOT_FOUND).json('User not found')
         }
     } catch (error) {
         next(error)
@@ -179,15 +174,15 @@ export const getUserById = async (req, res, next) => {
 }
 
 // @desc    Get user profile
-// @route   GET /api/users/profile
+// @route   GET /api/v1/user/profile
 // @access  Private
 export const getUserProfile = async (req, res) => {
-    const user = await User.findById(req.user._id)
+    const user = await User.findById(req.user._id).select('-password')
 
     if (user) {
         res.json(user)
     } else {
-        res.status(404)
+        res.status(StatusCodes.NOT_FOUND)
         throw new Error('User not found')
     }
 }
@@ -197,27 +192,27 @@ export const validatePassword = async (req, res) => {
     const { currentPassword } = req.body
 
     try {
-        const user = await User.findById(req.user._id) // Ensure req.user is populated with the logged-in user's information
+        const user = await User.findById(req.user._id)
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' })
+            return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' })
         }
 
         console.log(currentPassword)
-        // Check if the provided password matches the stored hashed password
         const isMatch = await user.matchPassword(currentPassword) // Define this method in your user model
         console.log(isMatch)
 
         if (!isMatch) {
-            return res.status(400).json({ valid: false })
+            return res.status(StatusCodes.BAD_REQUEST).json({ valid: false })
         }
 
         return res.json({ valid: true })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Server error' })
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Server error' })
     }
 }
+
 
 // Update function for changing password
 export const updatePassword = async (req, res) => {
@@ -227,7 +222,7 @@ export const updatePassword = async (req, res) => {
         const user = await User.findById(req.user._id) // Get the user
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' })
+            return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' })
         }
 
         // Hash the new password before saving
@@ -237,7 +232,7 @@ export const updatePassword = async (req, res) => {
         const updatedUser = await user.save()
 
         if (updatedUser) {
-            res.status(200).json({
+            res.status(StatusCodes.OK).json({
                 message: 'Password updated successfully',
                 user: {
                     _id: updatedUser._id,
@@ -245,12 +240,12 @@ export const updatePassword = async (req, res) => {
                 },
             })
         } else {
-            res.status(500)
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR)
             throw new Error('User update failed')
         }
     } catch (error) {
         console.error(error)
-        return res.status(500).json({ message: 'Server error' })
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Server error' })
     }
 }
 
@@ -259,13 +254,13 @@ export const deleteUserAccount = async (req, res, next) => {
         const user = await User.findById(req.user._id)
 
         if (!user) {
-            res.status(404)
+            res.status(StatusCodes.NOT_FOUND)
             throw new Error('User not found')
         }
 
         await User.findByIdAndDelete(req.user._id)
 
-        res.status(200).json({ message: 'User account deleted successfully' })
+        res.status(StatusCodes.OK).json({ message: 'User account deleted successfully' })
     } catch (error) {
         return next(error)
     }

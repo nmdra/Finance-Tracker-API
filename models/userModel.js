@@ -87,6 +87,3 @@ const User = mongoose.model('User', userSchema)
 
 export default User
 
-// TODO: Joi Validation schema support
-// TODO: Addresses and more
-
