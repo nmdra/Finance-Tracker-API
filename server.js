@@ -3,9 +3,11 @@ import cookieParser from 'cookie-parser'
 
 import connectDB from './config/db.js'
 import { logger, httpLogger } from "./middleware/logger.js"
-import healthRoutes from "./routes/v1/health.js";
 import { errorHandler, notFound } from './middleware/errorMiddleware.js'
+
+import healthRoutes from "./routes/v1/health.js";
 import userRoute from './routes/v1/user.js'
+import transactionRoute from "./routes/v1/transaction.js"
 
 const PORT = process.env.PORT || 5000
 
@@ -25,6 +27,7 @@ const API_VERSION = process.env.API_VERSION;
 
 app.use(`/api/${API_VERSION}/health`, healthRoutes)
 app.use(`/api/${API_VERSION}/user`, userRoute)
+app.use(`/api/${API_VERSION}/transaction`, transactionRoute)
 
 app.use(notFound) // Handle 404 Not Found
 app.use(errorHandler) // Error handler middleware
