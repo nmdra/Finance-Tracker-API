@@ -2,17 +2,28 @@ import Transaction from "../models/transactionModel.js";
 import { logger } from "../middleware/logger.js";
 import { StatusCodes } from "http-status-codes";
 import { calculateEndDate } from "../utils/calcRecurrence.js";
+import { convertCurrency } from "../utils/currencyConverter.js";
+
+const BASE_CURRENCY = process.env.BASE_CURRENCY;
 
 // @desc    Add new Transaction
 // @route   POST /api/v1/transaction
 // @access  Private
 export const addTransaction = async (req, res) => {
     try {
-        const { type, amount, category, tags, comments, isRecurring, recurrence } = req.body;
+        const { type, amount, currency, category, tags, comments, isRecurring, recurrence } = req.body;
 
-        if (!type || !amount || !category) {
-            logger.warn("Missing required fields: type, amount, or category");
-            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Type, amount, and category are required." });
+        if (!type || !amount || !category || !currency) {
+            logger.warn("Missing required fields");
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Type, amount, currency and category are required." });
+        }
+
+        let baseAmount;
+        try {
+            baseAmount = await convertCurrency(amount, currency, BASE_CURRENCY);
+        } catch (error) {
+            logger.error(`Currency conversion error: ${error.message}`);
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: `Currency conversion error: ${error.message}` })
         }
 
         let endDate = null;
@@ -26,6 +37,9 @@ export const addTransaction = async (req, res) => {
             user: req.user.id,
             type,
             amount,
+            baseAmount,
+            currency,
+            baseCurrency: BASE_CURRENCY,
             category,
             tags,
             comments,
@@ -83,14 +97,33 @@ export const getTransactions = async (req, res) => {
 // @access  Private
 export const getTransactionById = async (req, res) => {
     try {
+
+        const currency = req.query.currency
+
         const transaction = await Transaction.findOne({ transactionId: req.params.id });
         if (!transaction) {
             logger.warn(`Transaction not found: ID ${req.params.id}`);
             return res.status(StatusCodes.NOT_FOUND).json({ error: "Transaction not found" });
         }
 
-        logger.info(`Transaction retrieved: ${JSON.stringify(transaction)}`);
-        res.status(StatusCodes.OK).json(transaction);
+        let responseTransaction = transaction.toObject();
+
+        try {
+            const convertedAmount = await convertCurrency(transaction.baseAmount, BASE_CURRENCY, currency);
+            responseTransaction.amount = convertedAmount;
+            responseTransaction.currency = currency;
+        } catch (error) {
+            logger.error(`Currency conversion failed for Transaction ID ${transaction._id}: ${error.message}`);
+            throw new Error("Currency Conversion Failed")
+        }
+
+        // Remove Unnecessary values
+        delete responseTransaction.baseAmount
+        delete responseTransaction.baseCurrency
+        delete responseTransaction._id
+
+        logger.info(`Transaction retrieved: ${responseTransaction.transactionId}`);
+        res.status(StatusCodes.OK).json(responseTransaction);
     } catch (error) {
         logger.error(`Error fetching transaction by ID: ${error.message}`);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
@@ -104,11 +137,46 @@ export const updateTransaction = async (req, res) => {
     try {
         let updateData = { ...req.body };
 
-        // If isRecurring is false, set recurrence & endDate to null
-        if (updateData.isRecurring === false) {
+        // Ensure isRecurring is a boolean before checking
+        if (typeof updateData.isRecurring !== "undefined" && !updateData.isRecurring) {
             updateData.recurrence = null;
             updateData.endDate = null;
         }
+
+        const transaction = await Transaction.findOne({ transactionId: req.params.id });
+
+        if (!transaction) {
+            logger.warn(`Transaction not found or unauthorized: ID ${req.params.id}`);
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Transaction not found or unauthorized" });
+        }
+
+        if (updateData.currency && updateData.currency !== transaction.currency) {
+            try {
+                if (!updateData.amount) {
+                    logger.warn(`Missing amount for currency conversion: Transaction ID ${req.params.id}`);
+                    return res.status(StatusCodes.BAD_REQUEST).json({ error: "Amount is required for currency conversion" });
+                }
+
+                const convertedAmount = await convertCurrency(updateData.amount, updateData.currency, BASE_CURRENCY);
+
+                if (!convertedAmount) {
+                    logger.error(`Currency conversion failed for ${updateData.currency} to ${BASE_CURRENCY}`);
+                    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Currency conversion failed" });
+                }
+
+                updateData.baseAmount = convertedAmount;
+
+                logger.info(
+                    `Amount converted: ${updateData.amount} ${updateData.currency} -> ${updateData.baseAmount} ${BASE_CURRENCY}`
+                );
+            } catch (error) {
+                logger.error(`Error converting currency: ${error.message}`);
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Currency conversion error" });
+            }
+        }
+
+        // Prevent updating the user ID field for security
+        delete updateData.user;
 
         const updatedTransaction = await Transaction.findOneAndUpdate(
             { transactionId: req.params.id },
@@ -120,15 +188,15 @@ export const updateTransaction = async (req, res) => {
         );
 
         if (!updatedTransaction) {
-            logger.warn(`Transaction not found for update: ID ${req.params.id}`);
-            return res.status(StatusCodes.NOT_FOUND).json({ error: "Transaction not found" });
+            logger.warn(`Transaction not found or unauthorized: ID ${req.params.id}`);
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Transaction not found or unauthorized" });
         }
 
-        logger.info(`Transaction updated: ${updatedTransaction.transactionId}`);
-        res.status(StatusCodes.OK).json({ message: "Transaction Updated" });
+        logger.info(`Transaction updated successfully: ID ${updatedTransaction._id}`);
+        res.status(StatusCodes.OK).json({ message: "Transaction Updated", transaction: updatedTransaction });
     } catch (error) {
         logger.error(`Error updating transaction: ${error.message}`);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });
     }
 };
 
@@ -147,6 +215,38 @@ export const deleteTransaction = async (req, res) => {
         res.status(StatusCodes.OK).json({ message: "Transaction deleted successfully" });
     } catch (error) {
         logger.error(`Error deleting transaction: ${error.message}`);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+};
+
+// @desc    Convert currency
+// @route   POST /api/v1/transaction/convertcurrency
+// @access  Private
+export const currencyConverter = async (req, res) => {
+    try {
+
+        const { tocurrency, amount, fromcurrency } = req.query
+
+        if (!tocurrency || !amount || !fromcurrency) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "amount, currency are required." });
+        }
+
+        let convertedAmount
+        try {
+            convertedAmount = await convertCurrency(amount, fromcurrency, tocurrency);
+        } catch (error) {
+            logger.error(`Currency conversion failed. ${error.message}`);
+            throw new Error("Currency Conversion Failed")
+        }
+
+        res.status(StatusCodes.OK).json({
+            amount: amount,
+            fromcurrency: fromcurrency,
+            tocurrency: tocurrency,
+            convertedAmount: convertedAmount
+        });
+    } catch (error) {
+        logger.error(`Error fetching transaction by ID: ${error.message}`);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
 };
