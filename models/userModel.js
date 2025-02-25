@@ -1,6 +1,13 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 
+const addressSchema = new mongoose.Schema({
+    streetAddress: { type: String },
+    city: { type: String },
+    zipCode: { type: String },
+    district: { type: String },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema(
     {
         firstname: {
@@ -34,12 +41,12 @@ const userSchema = new mongoose.Schema(
             },
             required: false,
         },
-        defaultAddress: {
-            streetAddress: { type: String, required: false },
-            city: { type: String, required: false },
-            zipCode: { type: String, required: false },
-            district: { type: String, required: false },
+        memberType: {
+            type: String,
+            enum: ["admin", "regular"],
+            default: "regular",
         },
+        defaultAddress: addressSchema,
         contactNumber: {
             type: String,
             required: false,
