@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
+const BASE_CURRENCY = process.env.BASE_CURRENCY;
+
 const transactionSchema = new mongoose.Schema(
     {
         user: {
@@ -22,6 +24,10 @@ const transactionSchema = new mongoose.Schema(
             required: [true, 'Transaction amount is required'], // Custom error message
             min: [0, 'Transaction amount must be a positive number'], // Custom error message
         },
+        currency: { type: String, required: true }, // Currency code (e.g., "USD", "EUR")
+        baseAmount: { type: Number }, // Amount converted to a base currency (e.g., USD)
+        baseCurrency: { type: String, default: BASE_CURRENCY }, // Default base currency
+        // remove hardcoded catogeries 
         category: {
             type: String,
             enum: [
