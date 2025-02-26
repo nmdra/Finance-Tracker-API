@@ -1,23 +1,28 @@
+import redis from "../config/redis.js";
 import { createAxiosInstance } from "./axiosRetry.js";
 import { logger } from "../middleware/logger.js";
 
 const axiosInstance = createAxiosInstance(3, 5000);
+const CACHE_EXPIRATION = 3600;
 const API_KEY = process.env.EXCHANGE_RATE_API_KEY;
 const BASE_CURRENCY = process.env.BASE_CURRENCY;
 
 export const convertCurrency = async (amount, fromCurrency, toCurrency = BASE_CURRENCY) => {
     try {
-        if (!API_KEY) {
-            throw new Error("Exchange Rate API key is missing");
-        }
-        if (!fromCurrency || !toCurrency) {
-            throw new Error("Invalid currency codes provided");
-        }
-        if (fromCurrency === toCurrency) {
-            return amount.toFixed(2); // No conversion needed
-        }
+        if (!API_KEY) throw new Error("Exchange Rate API key is missing");
+        if (!fromCurrency || !toCurrency) throw new Error("Invalid currency codes provided");
+        if (fromCurrency === toCurrency) return amount.toFixed(2); // No conversion needed
 
         logger.info(`Fetching exchange rate for ${fromCurrency} to ${toCurrency}`);
+
+        const cacheKey = `exchange_rate:${fromCurrency}:${toCurrency}`;
+
+        const cachedRate = await redis.get(cacheKey);
+        if (cachedRate) {
+            logger.info(`Using cached exchange rate for ${fromCurrency} to ${toCurrency}`);
+            const convertedAmount = amount * parseFloat(cachedRate);
+            return convertedAmount.toFixed(2);
+        }
 
         let response;
         try {
@@ -45,6 +50,8 @@ export const convertCurrency = async (amount, fromCurrency, toCurrency = BASE_CU
         if (!rates) {
             throw new Error(`Exchange rate for ${toCurrency} not available`);
         }
+
+        await redis.setex(cacheKey, CACHE_EXPIRATION, rates.toString());
 
         const convertedAmount = amount * rates;
         logger.info(`Converted ${amount} ${fromCurrency} to ${convertedAmount.toFixed(2)} ${toCurrency}`);
