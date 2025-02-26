@@ -9,6 +9,7 @@ import healthRoutes from "./routes/v1/health.js";
 import userRoute from './routes/v1/user.js'
 import transactionRoute from "./routes/v1/transaction.js"
 import budgetRoutes from "./routes/v1/budget.js"
+import goalRoutes from "./routes/v1/goal.js"
 
 const PORT = process.env.PORT || 5000
 
@@ -30,6 +31,7 @@ app.use(`/api/${API_VERSION}/health`, healthRoutes)
 app.use(`/api/${API_VERSION}/user`, userRoute)
 app.use(`/api/${API_VERSION}/transaction`, transactionRoute)
 app.use(`/api/${API_VERSION}/budget`, budgetRoutes)
+app.use(`/api/${API_VERSION}/goal`, goalRoutes)
 
 app.use(notFound) // Handle 404 Not Found
 app.use(errorHandler) // Error handler middleware
