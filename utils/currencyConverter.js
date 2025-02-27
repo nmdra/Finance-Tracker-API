@@ -3,7 +3,7 @@ import { createAxiosInstance } from "./axiosRetry.js";
 import { logger } from "../middleware/logger.js";
 
 const axiosInstance = createAxiosInstance(3, 5000);
-const CACHE_EXPIRATION = 3600;
+const CACHE_EXPIRATION = 36000;
 const API_KEY = process.env.EXCHANGE_RATE_API_KEY;
 const BASE_CURRENCY = process.env.BASE_CURRENCY;
 
@@ -42,9 +42,7 @@ export const convertCurrency = async (amount, fromCurrency, toCurrency = BASE_CU
         }
 
         // Check for API success
-        if (response.data.result !== "success") {
-            handleApiError(response.data);
-        }
+        if (response.data.result !== "success") handleApiError(response.data);
 
         const rates = response.data.conversion_rate;
         if (!rates) {
