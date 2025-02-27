@@ -62,9 +62,6 @@ export const updateGoal = async (req, res, next) => {
             return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized action." });
         }
 
-        redis.on("connect", () => {
-            logger.info("Connected to Redis successfully");
-        });
         if (title) goal.title = title;
         if (currency) goal.currency = currency;
         if (targetAmount) {
@@ -165,6 +162,7 @@ export const addSavingsToGoal = async (req, res, next) => {
     }
 };
 
+//TODO Auto Allocation with transaction
 /**
  * @desc    Automatically allocate funds to goals from an income transaction
  * @param   {Object} transaction - The income transaction

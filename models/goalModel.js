@@ -22,6 +22,12 @@ const goalSchema = new mongoose.Schema(
             required: true,
             default: 0,
             min: 0,
+            validate: {
+                validator: function (value) {
+                    return typeof value === "number" && !isNaN(value);
+                },
+                message: "Saved amount must be a valid number.",
+            },
         },
         currency: {
             type: String,
@@ -30,6 +36,10 @@ const goalSchema = new mongoose.Schema(
         baseAmount: {
             type: Number,
             required: true,
+        },
+        baseCurrency: {
+            type: String,
+            default: process.env.BASE_CURRENCY,
         },
         deadline: {
             type: Date,
