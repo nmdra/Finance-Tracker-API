@@ -57,12 +57,28 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - db
+      - redis
+    networks:
+      - financeAPI-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: Redis-Cache
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --loglevel warning
+    depends_on:
+      - db
+    volumes:
+      - redis_data:/data
     networks:
       - financeAPI-network
 
 volumes:
   dbdata: 
     external: true
+  redis_data:
 
 networks:
   financeAPI-network:

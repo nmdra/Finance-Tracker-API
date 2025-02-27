@@ -15,6 +15,7 @@ export const registerUser = async (req, res, next) => {
         defaultAddress,
         contactNumber,
         pic,
+        memberType,
     } = req.body
 
     try {
@@ -32,6 +33,7 @@ export const registerUser = async (req, res, next) => {
             defaultAddress,
             contactNumber,
             pic,
+            memberType,
         })
 
         if (user) {
@@ -40,13 +42,7 @@ export const registerUser = async (req, res, next) => {
                 user: {
                     _id: user._id,
                     name: user.name,
-                    firstname: user.firstname,
-                    lastname: user.lastname,
                     email: user.email,
-                    defaultAddress: user.defaultAddress,
-                    contactNumber: user.contactNumber,
-                    pic: user.pic,
-                    birthday: user.birthday,
                 },
             })
         } else {
@@ -152,27 +148,6 @@ export const logoutUser = (_req, res) => {
     res.status(StatusCodes.NO_CONTENT).json({ message: 'Logged out successfully' })
 }
 
-// @desc    Get user by ID
-// @route   GET /api/v1/user/:id
-// @access  Private/Admin
-export const getUserById = async (req, res, next) => {
-    if (req.user.membershipType !== 'admin') {
-        return res.status(StatusCodes.UNAUTHORIZED).json('Unauthorized')
-    }
-
-    try {
-        const user = await User.findById(req.params.id).select('-password')
-
-        if (user) {
-            res.json(user)
-        } else {
-            return res.status(StatusCodes.NOT_FOUND).json('User not found')
-        }
-    } catch (error) {
-        next(error)
-    }
-}
-
 // @desc    Get user profile
 // @route   GET /api/v1/user/profile
 // @access  Private
@@ -266,3 +241,44 @@ export const deleteUserAccount = async (req, res, next) => {
     }
 }
 
+// @desc    Get user by ID
+// @route   GET /api/v1/user/:id
+// @access  Private/Admin
+export const getUserById = async (req, res, next) => {
+    if (req.user.memberType !== 'admin') {
+        return res.status(StatusCodes.UNAUTHORIZED).json('Unauthorized')
+    }
+
+    try {
+        const user = await User.findById(req.params.id).select('-password')
+
+        if (user) {
+            res.json(user)
+        } else {
+            return res.status(StatusCodes.NOT_FOUND).json('User not found')
+        }
+    } catch (error) {
+        next(error)
+    }
+}
+
+// @desc    Get all users
+// @route   GET /api/v1/users
+// @access  Private/Admin
+export const getAllUsers = async (req, res, next) => {
+    if (req.user.memberType !== "admin") {
+        return res.status(StatusCodes.UNAUTHORIZED).json("Unauthorized");
+    }
+
+    try {
+        const users = await User.find().select("-password").sort({ createdAt: -1 });
+
+        if (users.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json("No users found");
+        }
+
+        res.json(users);
+    } catch (error) {
+        next(error);
+    }
+};
