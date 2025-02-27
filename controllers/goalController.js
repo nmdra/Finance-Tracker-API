@@ -10,11 +10,15 @@ import { logger } from "../middleware/logger.js";
  */
 export const addGoal = async (req, res, next) => {
     try {
-        const { title, targetAmount, currency, deadline } = req.body;
+        const { title, targetAmount, currency, deadline, allocationCategories, allocationPercentage } = req.body;
         const userId = req.user.id;
 
         if (!title || !targetAmount || !currency) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: "All fields are required." });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: "Title, targetAmount, and currency are required." });
+        }
+
+        if (allocationPercentage < 0 || allocationPercentage > 100) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: "Allocation percentage must be between 0 and 100." });
         }
 
         // Convert goal target amount to base currency
@@ -28,6 +32,8 @@ export const addGoal = async (req, res, next) => {
             currency,
             baseAmount,
             deadline,
+            allocationCategories: allocationCategories || [],
+            allocationPercentage: allocationPercentage || 0,
         });
 
         await goal.save();
@@ -45,7 +51,7 @@ export const addGoal = async (req, res, next) => {
  */
 export const updateGoal = async (req, res, next) => {
     try {
-        const { title, targetAmount, currency, deadline } = req.body;
+        const { title, targetAmount, currency, deadline, allocationCategories, allocationPercentage } = req.body;
         const goal = await Goal.findById(req.params.id);
 
         if (!goal) {
@@ -56,6 +62,9 @@ export const updateGoal = async (req, res, next) => {
             return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized action." });
         }
 
+        redis.on("connect", () => {
+            logger.info("Connected to Redis successfully");
+        });
         if (title) goal.title = title;
         if (currency) goal.currency = currency;
         if (targetAmount) {
@@ -63,6 +72,13 @@ export const updateGoal = async (req, res, next) => {
             goal.baseAmount = await convertCurrency(targetAmount, currency || goal.currency);
         }
         if (deadline) goal.deadline = deadline;
+        if (allocationCategories) goal.allocationCategories = allocationCategories;
+        if (allocationPercentage !== undefined) {
+            if (allocationPercentage < 0 || allocationPercentage > 100) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ message: "Allocation percentage must be between 0 and 100." });
+            }
+            goal.allocationPercentage = allocationPercentage;
+        }
 
         await goal.save();
         res.status(StatusCodes.OK).json(goal);
@@ -126,7 +142,7 @@ export const getGoalProgress = async (req, res, next) => {
  * @desc    Add savings to goal
  * @route   PUT /api/v1/goals/:id/savings
  * @access  Private
-*/
+ */
 export const addSavingsToGoal = async (req, res, next) => {
     try {
         let { amount, currency } = req.body;
@@ -149,8 +165,42 @@ export const addSavingsToGoal = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Automatically allocate funds to goals from an income transaction
+ * @param   {Object} transaction - The income transaction
+ */
+export const autoAllocateToGoals = async (transaction, userId) => {
+    try {
+        if (transaction.type !== "income") return;
+
+        const goals = await Goal.find({ userId });
+
+        for (const goal of goals) {
+            if (
+                goal.allocationCategories.includes(transaction.category) &&
+                goal.allocationPercentage > 0 &&
+                !goal.isCompleted
+            ) {
+                let allocatedAmount = (transaction.amount * goal.allocationPercentage) / 100;
+
+                if (goal.currency !== transaction.currency) allocatedAmount = await convertCurrency(allocatedAmount, transaction.currency, goal.currency);
+
+                await updateGoalSavings(goal, allocatedAmount, goal.currency);
+            }
+        }
+    } catch (error) {
+        logger.error(`Failed to auto-allocate funds: ${error.message}`);
+    }
+};
+
+/**
+ * @desc    Update goal savings and mark as completed if needed
+ * @param   {Object} goal - The goal object
+ * @param   {Number} amount - Amount to add
+ * @param   {String} currency - Currency of the amount
+ * @returns {Object} Updated goal
+ */
 export const updateGoalSavings = async (goal, amount, currency) => {
-    // Convert savings amount to goal's currency if different
     if (goal.currency !== currency) {
         const convertedAmount = await convertCurrency(amount, currency, goal.currency);
         amount = parseFloat(convertedAmount);

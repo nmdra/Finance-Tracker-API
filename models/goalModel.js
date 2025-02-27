@@ -10,16 +10,18 @@ const goalSchema = new mongoose.Schema(
         title: {
             type: String,
             required: true,
+            trim: true,
         },
         targetAmount: {
             type: Number,
             required: true,
-            min: [0, "Target amount must be a positive number"],
+            min: 0,
         },
         savedAmount: {
             type: Number,
+            required: true,
             default: 0,
-            min: [0, "Saved amount cannot be negative"],
+            min: 0,
         },
         currency: {
             type: String,
@@ -27,18 +29,24 @@ const goalSchema = new mongoose.Schema(
         },
         baseAmount: {
             type: Number,
-        },
-        baseCurrency: {
-            type: String,
-            default: process.env.BASE_CURRENCY,
+            required: true,
         },
         deadline: {
             type: Date,
-            required: false,
         },
         isCompleted: {
             type: Boolean,
             default: false,
+        },
+        allocationCategories: {
+            type: [String], // List of transaction categories that can allocate funds to this goal
+            default: [],
+        },
+        allocationPercentage: {
+            type: Number, // Percentage of income transactions to allocate (e.g., 10% of salary)
+            default: 0,
+            min: 0,
+            max: 100,
         },
     },
     { timestamps: true }
