@@ -197,6 +197,9 @@ export const autoAllocateToGoals = async (transaction) => {
                 if (goal.currency !== transaction.currency) allocatedAmount = await convertCurrency(allocatedAmount, transaction.currency, goal.currency);
 
                 await updateGoalSavings(goal, allocatedAmount, goal.currency);
+
+                await createNotification(userId, "goal_reminder", `Allocate ${allocatedAmount} ${goal.currency} to  ${goal.title}`);
+
                 logger.info(`allocate to Goal: ${goal._id}`)
             }
         }
@@ -222,6 +225,9 @@ export const updateGoalSavings = async (goal, amount, currency) => {
 
     if (goal.savedAmount >= goal.targetAmount) {
         goal.isCompleted = true;
+        await createNotification(goal.userId, "goal_reminder", `Congratulations! You've completed your goal: ${goal.title}`);
+    } else if (goal.savedAmount >= goal.targetAmount * 0.9) {
+        await createNotification(goal.userId, "goal_reminder", `You're close to reaching your goal: ${goal.title}`);
     }
 
     await goal.save();

@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { calculateEndDate } from "../utils/calcRecurrence.js";
 import { convertCurrency } from "../utils/currencyConverter.js";
 import { autoAllocateToGoals } from "../controllers/goalController.js"
+import { createNotification } from "../middleware/notification.js";
 
 const BASE_CURRENCY = process.env.BASE_CURRENCY;
 
@@ -55,6 +56,8 @@ export const addTransaction = async (req, res) => {
                 console.log("auto")
                 await autoAllocateToGoals(savedTransaction)
             }
+
+            await createNotification(req.user.id, "transaction_alert", `Transaction Completed: ${savedTransaction.transactionId}`);
 
             res.status(StatusCodes.CREATED).json({ transactionId: savedTransaction.transactionId });
         } catch (error) {
