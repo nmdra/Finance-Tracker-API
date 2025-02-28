@@ -27,7 +27,7 @@ const transactionSchema = new mongoose.Schema(
         currency: { type: String, required: [true, "Currency is required."], uppercase: true }, // Currency code (e.g., "USD", "EUR")
         baseAmount: { type: Number }, // Amount converted to a base currency (e.g., USD)
         baseCurrency: { type: String, default: BASE_CURRENCY || "USD" }, // Default base currency
-        // remove hardcoded catogeries 
+        //TODO Admin can change categories
         category: {
             type: String,
             enum: [
@@ -90,6 +90,6 @@ const transactionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const Transaction = mongoose.model("Transaction", transactionSchema);
+export const Transaction = mongoose.model("Transaction", transactionSchema);
 
-export default Transaction;
+//TODO Category aggregation functions

@@ -1,4 +1,4 @@
-import Transaction from "../models/transactionModel.js";
+import { Transaction } from "../models/transactionModel.js";
 import { Goal } from "../models/goalModel.js";
 import { StatusCodes } from "http-status-codes";
 import { logger } from "../middleware/logger.js";
