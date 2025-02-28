@@ -255,22 +255,3 @@ export const getUserById = async (req, res, next) => {
         next(error)
     }
 }
-
-// @desc    Get all users
-// @route   GET /api/v1/users
-// @access  Private/Admin
-export const getAllUsers = async (req, res, next) => {
-    if (req.user.memberType !== "admin") {
-        return res.status(StatusCodes.UNAUTHORIZED).json("Unauthorized");
-    }
-
-    try {
-        const users = await User.find().select("-password").sort({ createdAt: -1 });
-
-        if (users.length === 0) return res.status(StatusCodes.NOT_FOUND).json("No users found");
-
-        res.json(users);
-    } catch (error) {
-        next(error);
-    }
-};
