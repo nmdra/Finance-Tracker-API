@@ -3,6 +3,8 @@ import { logger } from "../middleware/logger.js";
 import { StatusCodes } from "http-status-codes";
 import { calculateEndDate } from "../utils/calcRecurrence.js";
 import { convertCurrency } from "../utils/currencyConverter.js";
+import { autoAllocateToGoals } from "../controllers/goalController.js"
+import { createNotification } from "../middleware/notification.js";
 
 const BASE_CURRENCY = process.env.BASE_CURRENCY;
 
@@ -29,9 +31,7 @@ export const addTransaction = async (req, res) => {
         let endDate = null;
 
         // Calculate endDate based on recurrence if the transaction is recurring
-        if (isRecurring && recurrence) {
-            endDate = calculateEndDate(recurrence);
-        }
+        if (isRecurring && recurrence) endDate = calculateEndDate(recurrence);
 
         const newTransaction = new Transaction({
             user: req.user.id,
@@ -51,6 +51,14 @@ export const addTransaction = async (req, res) => {
         try {
             const savedTransaction = await newTransaction.save();
             logger.info(`New transaction added. User ID: ${req.user.id}, Transaction ID: ${savedTransaction.transactionId}`);
+
+            if (savedTransaction.type === "income") {
+                console.log("auto")
+                await autoAllocateToGoals(savedTransaction)
+            }
+
+            await createNotification(req.user.id, "transaction_alert", `Transaction Completed: ${savedTransaction.transactionId}`);
+
             res.status(StatusCodes.CREATED).json({ transactionId: savedTransaction.transactionId });
         } catch (error) {
             logger.error(`error while saving transaction: ${error.message}`);

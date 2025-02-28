@@ -162,16 +162,29 @@ export const addSavingsToGoal = async (req, res, next) => {
     }
 };
 
-//TODO Auto Allocation with transaction
 /**
  * @desc    Automatically allocate funds to goals from an income transaction
  * @param   {Object} transaction - The income transaction
  */
-export const autoAllocateToGoals = async (transaction, userId) => {
+export const autoAllocateToGoals = async (transaction) => {
+    console.log(transaction)
+
     try {
         if (transaction.type !== "income") return;
 
+        const userId = transaction.user;
+        if (!userId) {
+            logger.warn("Transaction is missing user information.");
+            return;
+        }
+
+        // Fetch all goals belonging to the user
         const goals = await Goal.find({ userId });
+
+        if (!goals.length) {
+            logger.info(`No goals found for user ${userId}.`);
+            return;
+        }
 
         for (const goal of goals) {
             if (
@@ -184,6 +197,10 @@ export const autoAllocateToGoals = async (transaction, userId) => {
                 if (goal.currency !== transaction.currency) allocatedAmount = await convertCurrency(allocatedAmount, transaction.currency, goal.currency);
 
                 await updateGoalSavings(goal, allocatedAmount, goal.currency);
+
+                await createNotification(userId, "goal_reminder", `Allocate ${allocatedAmount} ${goal.currency} to  ${goal.title}`);
+
+                logger.info(`allocate to Goal: ${goal._id}`)
             }
         }
     } catch (error) {
@@ -208,6 +225,9 @@ export const updateGoalSavings = async (goal, amount, currency) => {
 
     if (goal.savedAmount >= goal.targetAmount) {
         goal.isCompleted = true;
+        await createNotification(goal.userId, "goal_reminder", `Congratulations! You've completed your goal: ${goal.title}`);
+    } else if (goal.savedAmount >= goal.targetAmount * 0.9) {
+        await createNotification(goal.userId, "goal_reminder", `You're close to reaching your goal: ${goal.title}`);
     }
 
     await goal.save();
