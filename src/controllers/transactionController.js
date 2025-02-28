@@ -1,4 +1,4 @@
-import Transaction from "../models/transactionModel.js";
+import { Transaction } from "../models/transactionModel.js";
 import { logger } from "../middleware/logger.js";
 import { StatusCodes } from "http-status-codes";
 import { calculateEndDate } from "../utils/calcRecurrence.js";

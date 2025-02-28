@@ -1,32 +1,49 @@
-import jwt from 'jsonwebtoken'
-import User from '../models/userModel.js'
+import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
+import { StatusCodes } from "http-status-codes";
+import { logger } from "./logger.js";
 
-const protect = async (req, res, next) => {
-    let token = req.cookies.jwt
-
+/**
+ * Middleware to protect routes by verifying JWT token.
+ */
+export const protect = async (req, res, next) => {
     try {
-        if (token) {
-            const decoded = await jwt.verify(token, process.env.JWT_SECRET)
+        const token = req.cookies.jwt;
 
-            req.user = await User.findById(decoded.userId).select('-password')
-
-            if (!req.user) {
-                res.status(403)
-                throw new Error('User not found')
-            }
-
-            next()
-        } else {
-            res.status(401)
-            throw new Error('Not authorized. No token provided', 401)
+        if (!token) {
+            logger.warn("Unauthorized access attempt. No token provided.");
+            return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Not authorized. No token provided." });
         }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId).select("-password");
+
+        if (!user) {
+            logger.warn(`User not found for token: ${token}`);
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "User not found." });
+        }
+
+        req.user = user;
+        next();
     } catch (error) {
         if (error instanceof jwt.JsonWebTokenError) {
-            res.status(401)
-            return next(new Error('Invalid token signature'))
+            logger.error("Invalid token signature.");
+            return res.status(StatusCodes.UNAUTHORIZED).json({ error: "Invalid token signature." });
         }
-        next(error)
-    }
-}
 
-export default protect
+        logger.error(`Authentication error: ${error.message}`);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Authentication failed." });
+    }
+};
+
+/**
+ * Middleware to restrict access to admin users only.
+ */
+export const adminOnly = (req, res, next) => {
+    if (!req.user || req.user.memberType !== "admin") {
+        logger.warn(`Access denied for user ID: ${req.user?.id || "Unknown"}`);
+        return res.status(StatusCodes.FORBIDDEN).json({ error: "Access denied. Admins only." });
+    }
+
+    next();
+};
