@@ -5,7 +5,9 @@ import {
     getAllTransactions,
     deleteTransaction,
     getAllGoals,
-    deleteGoal
+    deleteGoal,
+    getSettings,
+    updateSettings
 } from "../../controllers/adminController.js";
 import { protect, adminOnly } from "../../middleware/authMiddleware.js";
 
@@ -22,5 +24,7 @@ router.route("/transactions/:id").delete(protect, adminOnly, deleteTransaction);
 // Goal management
 router.route("/goals").get(protect, adminOnly, getAllGoals);
 router.route("/goals/:id").delete(protect, adminOnly, deleteGoal);
+
+router.route("/settings").get(protect, adminOnly, getSettings).put(protect, adminOnly, updateSettings);
 
 export default router;

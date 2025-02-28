@@ -1,3 +1,4 @@
+import { Config } from "../models/configModel.js";
 import User from "../models/userModel.js";
 import { Transaction } from "../models/transactionModel.js";
 import { Goal } from "../models/goalModel.js";
@@ -108,6 +109,50 @@ export const deleteGoal = async (req, res, next) => {
         res.status(StatusCodes.OK).json({ message: "Goal deleted successfully." });
     } catch (error) {
         logger.error(`Failed to delete goal: ${error.message}`);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get system settings
+ * @route   GET /api/v1/admin/settings
+ * @access  Private (Admin Only)
+ */
+export const getSettings = async (req, res, next) => {
+    try {
+        const settings = await Config.findOne();
+        if (!settings) {
+            return res.status(StatusCodes.NOT_FOUND).json({ message: "No settings found" });
+        }
+        res.status(StatusCodes.OK).json(settings);
+    } catch (error) {
+        logger.error(`Failed to fetch settings: ${error.message}`);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Update system settings
+ * @route   PUT /api/v1/admin/settings
+ * @access  Private (Admin Only)
+ */
+export const updateSettings = async (req, res, next) => {
+    try {
+        const { defaultCurrency, budgetLimit, transactionCategories } = req.body;
+
+        let settings = await Config.findOne();
+        if (!settings) {
+            settings = new Config({});
+        }
+
+        if (defaultCurrency) settings.defaultCurrency = defaultCurrency;
+        if (budgetLimit) settings.budgetLimit = budgetLimit;
+        if (transactionCategories) settings.transactionCategories = transactionCategories;
+
+        await settings.save();
+        res.status(StatusCodes.OK).json({ message: "Settings updated successfully", settings });
+    } catch (error) {
+        logger.error(`Failed to update settings: ${error.message}`);
         next(error);
     }
 };

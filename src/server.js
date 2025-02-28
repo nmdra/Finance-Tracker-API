@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser'
 import connectDB from './config/db.js'
 import { logger, httpLogger } from "./middleware/logger.js"
 import { errorHandler, notFound } from './middleware/errorMiddleware.js'
+import { initializeDefaultConfig } from './utils/initializeDefaultConfig.js'
 
 import healthRoutes from "./routes/v1/health.js";
 import userRoute from './routes/v1/user.js'
@@ -15,9 +16,6 @@ import analyticsRoutes from "./routes/v1/analytics.js"
 import adminRoutes from "./routes/v1/admin.js"
 
 const PORT = process.env.PORT || 5000
-
-// Connect to MongoDB
-connectDB()
 
 const app = express()
 
@@ -42,9 +40,14 @@ app.use(`/api/${API_VERSION}/admin`, adminRoutes)
 app.use(notFound) // Handle 404 Not Found
 app.use(errorHandler) // Error handler middleware
 
-// Start the server
-app.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`)
-}).on('error', (error) => {
-    logger.error(`Error starting server: ${error.message}`)
-})
+const startServer = async () => {
+    try {
+        await connectDB(); // Connect to MongoDB
+        await initializeDefaultConfig(); // Initialize settings from config.json
+        app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+    } catch (error) {
+        logger.error(`Error starting server: ${error.message}`)
+    }
+};
+
+startServer();
