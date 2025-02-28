@@ -11,6 +11,7 @@ import transactionRoute from "./routes/v1/transaction.js"
 import budgetRoutes from "./routes/v1/budget.js"
 import goalRoutes from "./routes/v1/goal.js"
 import notificationRoutes from "./routes/v1/notification.js"
+import analyticsRoutes from "./routes/v1/analytics.js"
 
 const PORT = process.env.PORT || 5000
 
@@ -34,6 +35,7 @@ app.use(`/api/${API_VERSION}/transaction`, transactionRoute)
 app.use(`/api/${API_VERSION}/budget`, budgetRoutes)
 app.use(`/api/${API_VERSION}/goal`, goalRoutes)
 app.use(`/api/${API_VERSION}/notification`, notificationRoutes)
+app.use(`/api/${API_VERSION}/analytics`, analyticsRoutes)
 
 app.use(notFound) // Handle 404 Not Found
 app.use(errorHandler) // Error handler middleware
