@@ -5,6 +5,7 @@ import connectDB from './config/db.js'
 import { logger, httpLogger } from "./middleware/logger.js"
 import { errorHandler, notFound } from './middleware/errorMiddleware.js'
 import { initializeDefaultConfig } from './utils/initializeDefaultConfig.js'
+import "./jobs/transactionScheduler.js";
 
 import healthRoutes from "./routes/v1/health.js";
 import userRoute from './routes/v1/user.js'

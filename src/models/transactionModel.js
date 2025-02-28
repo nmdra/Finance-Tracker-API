@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 import { Config } from "../models/configModel.js";
+import dayjs from "dayjs";
 
 const BASE_CURRENCY = process.env.BASE_CURRENCY;
 
@@ -70,26 +71,40 @@ const transactionSchema = new mongoose.Schema(
                 message: 'Recurrence pattern is required if the transaction is recurring', // Custom error message
             },
         },
-        endDate: {
-            type: Date,
-            required: function () {
-                return this.isRecurring; // Required if the transaction is recurring
-            },
-            validate: {
-                validator: function (value) {
-                    // Validate that endDate is defined if isRecurring is true
-                    return !this.isRecurring || value != null;
-                },
-                message: 'End date is required if the transaction is recurring', // Custom error message
-            },
-        },
+        nextDueDate: { type: Date },
     },
     { timestamps: true }
 );
 
-export const Transaction = mongoose.model("Transaction", transactionSchema);
 
 const getSystemSettings = async () => {
     const settings = await Config.findOne();
     return settings || { transactionCategories: ["Other"] }; // Default category if settings are missing
 };
+
+// Auto-calculate next due date before saving
+transactionSchema.pre("save", function (next) {
+    if (this.isRecurring) {
+        let nextDate = dayjs(this.date);
+
+        switch (this.recurrence) {
+            case "daily":
+                nextDate = nextDate.add(1, "day");
+                break;
+            case "weekly":
+                nextDate = nextDate.add(1, "week");
+                break;
+            case "monthly":
+                nextDate = nextDate.add(1, "month");
+                break;
+            case "yearly":
+                nextDate = nextDate.add(1, "year");
+                break;
+        }
+
+        this.nextDueDate = nextDate.toDate();
+    }
+    next();
+});
+
+export const Transaction = mongoose.model("Transaction", transactionSchema);
