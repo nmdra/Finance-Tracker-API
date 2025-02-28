@@ -17,10 +17,10 @@ services:
         - action: rebuild
           path: package-lock.json
         - action: sync+restart
-          path: server.js
+          path: src/server.js
           target: /app/server.js
         - action: sync
-          path: .
+          path: src
           target: /app
           ignore:
             - node_modules

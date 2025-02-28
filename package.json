@@ -15,9 +15,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon -L --verbose --env-file=.env server.js",
-    "watch": "node --watch --env-file=.env server",
-    "start": "node --env-file=.env server.js"
+    "dev": "nodemon -L --verbose server.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "axios": "^1.7.9",

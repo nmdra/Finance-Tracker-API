@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(httpLogger)
 
-// API Versioning
+// API Version
 const API_VERSION = process.env.API_VERSION;
 
 app.use(`/api/${API_VERSION}/health`, healthRoutes)

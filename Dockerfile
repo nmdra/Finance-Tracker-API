@@ -7,12 +7,12 @@ COPY package*.json ./
 # Install development dependencies separately
 RUN npm install -g nodemon && npm install --omit=dev --verbose
 
-COPY . .
+COPY ./src .
 
 # Expose port for development
 EXPOSE 5000
 
 # Start application in watch mode for development
-CMD ["npm", "run", "watch"]
+CMD ["npm", "run", "dev"]
 
 
