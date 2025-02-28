@@ -169,17 +169,13 @@ export const validatePassword = async (req, res) => {
     try {
         const user = await User.findById(req.user._id)
 
-        if (!user) {
-            return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' })
-        }
+        if (!user) return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' })
 
         console.log(currentPassword)
         const isMatch = await user.matchPassword(currentPassword) // Define this method in your user model
         console.log(isMatch)
 
-        if (!isMatch) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ valid: false })
-        }
+        if (!isMatch) return res.status(StatusCodes.BAD_REQUEST).json({ valid: false })
 
         return res.json({ valid: true })
     } catch (error) {
@@ -196,9 +192,7 @@ export const updatePassword = async (req, res) => {
     try {
         const user = await User.findById(req.user._id) // Get the user
 
-        if (!user) {
-            return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' })
-        }
+        if (!user) return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' })
 
         // Hash the new password before saving
         user.password = newPassword
@@ -273,9 +267,7 @@ export const getAllUsers = async (req, res, next) => {
     try {
         const users = await User.find().select("-password").sort({ createdAt: -1 });
 
-        if (users.length === 0) {
-            return res.status(StatusCodes.NOT_FOUND).json("No users found");
-        }
+        if (users.length === 0) return res.status(StatusCodes.NOT_FOUND).json("No users found");
 
         res.json(users);
     } catch (error) {
