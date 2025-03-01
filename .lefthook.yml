@@ -1,0 +1,7 @@
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      run: npx prettier --ignore-unknown --write ./src/${staged_files}
+      glob: "*.js"
+      stage_fixed: true
