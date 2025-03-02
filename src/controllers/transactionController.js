@@ -27,11 +27,9 @@ export const addTransaction = async (req, res) => {
 
         if (!type || !amount || !category || !currency) {
             logger.warn('Missing required fields');
-            return res
-                .status(StatusCodes.BAD_REQUEST)
-                .json({
-                    error: 'Type, amount, currency and category are required.',
-                });
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                error: 'Type, amount, currency and category are required.',
+            });
         }
 
         let baseAmount;
@@ -100,11 +98,23 @@ export const addTransaction = async (req, res) => {
 // @desc    Get All transaction by user
 // @route   GET /api/v1/transaction
 // @access  Private
-// TODO Pagination
 export const getTransactions = async (req, res) => {
     try {
-        const { tag, category, type, startDate, endDate } = req.query;
-        let filter = { user: req.user.id };
+        const {
+            tag,
+            category,
+            type,
+            startDate,
+            endDate,
+            page = 1,
+            limit = 10,
+        } = req.query;
+        let filter = {};
+
+        // If user is not an admin, filter by user ID
+        if (req.user.memberType !== 'admin') {
+            filter.user = req.user.id;
+        }
 
         if (tag) filter.tags = tag;
         if (category) filter.category = category;
@@ -117,9 +127,24 @@ export const getTransactions = async (req, res) => {
             if (endDate) filter.date.$lte = new Date(endDate);
         }
 
-        const transactions = await Transaction.find(filter).sort({ date: -1 });
-        logger.info(`Transactions fetched: ${transactions.length} found`);
-        res.status(StatusCodes.OK).json(transactions);
+        const totalTransactions = await Transaction.countDocuments(filter);
+        const transactions = await Transaction.find(filter)
+            .sort({ date: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        logger.info(
+            `Transactions fetched: ${transactions.length} found ${
+                req.user.memberType === 'admin' ? '(Admin Access)' : ''
+            }`
+        );
+
+        res.status(StatusCodes.OK).json({
+            total: totalTransactions,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            transactions,
+        });
     } catch (error) {
         logger.error(`Error fetching transactions: ${error.message}`);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -130,7 +155,7 @@ export const getTransactions = async (req, res) => {
 
 // @desc    Get Transaction by id
 // @route   POST /api/v1/transaction/:id
-// @access  Private
+// @access  Private/User || Admin
 export const getTransactionById = async (req, res) => {
     try {
         const currency = req.query.currency;
@@ -217,11 +242,9 @@ export const updateTransaction = async (req, res) => {
                     logger.warn(
                         `Missing amount for currency conversion: Transaction ID ${req.params.id}`
                     );
-                    return res
-                        .status(StatusCodes.BAD_REQUEST)
-                        .json({
-                            error: 'Amount is required for currency conversion',
-                        });
+                    return res.status(StatusCodes.BAD_REQUEST).json({
+                        error: 'Amount is required for currency conversion',
+                    });
                 }
 
                 const convertedAmount = await convertCurrency(
