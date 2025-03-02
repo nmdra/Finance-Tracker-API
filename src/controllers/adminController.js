@@ -4,6 +4,43 @@ import { Transaction } from '../models/transactionModel.js';
 import { Goal } from '../models/goalModel.js';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../middleware/logger.js';
+import { generateToken } from '../utils/generateToken.js';
+
+// @desc    Authenticate admin & get token
+// @route   POST /api/v1/admin/auth
+// @access  Public
+export const authAdmin = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    try {
+        if (!email || !password) {
+            res.status(StatusCodes.BAD_REQUEST);
+            throw new Error('Email and password are required.');
+        }
+
+        const admin = await User.findOne({ email });
+
+        if (!admin || admin.memberType !== 'admin') {
+            res.status(StatusCodes.UNAUTHORIZED);
+            throw new Error('Invalid credentials or not an admin.');
+        }
+
+        if (await admin.matchPassword(password)) {
+            generateToken(res, admin._id);
+
+            res.status(StatusCodes.OK).json({
+                _id: admin._id,
+            });
+        } else {
+            res.status(StatusCodes.UNAUTHORIZED).json({
+                message: 'Invalid email or password.',
+            });
+        }
+    } catch (error) {
+        logger.error(`Admin authentication failed: ${error.message}`);
+        next(error);
+    }
+};
 
 /**
  * @desc Get all users

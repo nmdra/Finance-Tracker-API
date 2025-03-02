@@ -1,19 +1,22 @@
-import express from "express";
+import express from 'express';
 import {
     addGoal,
     updateGoal,
     deleteGoal,
     getGoalProgress,
     addSavingsToGoal,
-} from "../../controllers/goalController.js";
-import { protect } from "../../middleware/authMiddleware.js";
+} from '../../controllers/goalController.js';
+import { protect, regularOnly } from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Protected Routes (Require Authentication)
-router.route("").post(protect, addGoal);
-router.route("/:id").put(protect, updateGoal).delete(protect, deleteGoal);
-router.route("/:id/progress").get(protect, getGoalProgress);
-router.route("/:id/savings").put(protect, addSavingsToGoal);
+router.route('').post(protect, regularOnly, addGoal);
+router
+    .route('/:id')
+    .put(protect, regularOnly, updateGoal)
+    .delete(protect, regularOnly, deleteGoal);
+router.route('/:id/progress').get(protect, regularOnly, getGoalProgress);
+router.route('/:id/savings').put(protect, regularOnly, addSavingsToGoal);
 
 export default router;
