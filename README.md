@@ -18,6 +18,9 @@ A comprehensive API designed to manage and track personal finances. This API inc
 - **Budget Management**: Create and manage financial budgets.
 - **Goal Tracking**: Set and monitor progress toward financial goals.
 - **Notifications**: Real-time notifications about spending patterns, deadlines, and goals.
+- **Automate Jobs**
+- **Data Caching (Redis)**
+- **Email Handling**
 
 ## Libraries and Frameworks
 
@@ -29,6 +32,8 @@ A comprehensive API designed to manage and track personal finances. This API inc
 6. **[Pino, Pino-Http, Pino-Pretty](https://getpino.io/)** - Fast JSON logger.
 7. **[Http-Status-Codes](https://www.npmjs.com/package/http-status-codes)** - HTTP status code constants.
 8. **[Ioredis](https://github.com/luin/ioredis)** - Redis client for Node.js.
+9. **[Nodemailer + MailTrap](https://mailtrap.io/blog/sending-emails-with-nodemailer/#Send-HTML-email)** - Email Handling.
+10. **[Croner](https://croner.56k.guru/)** - Job Scheduling.
 
 ## API
 
@@ -40,6 +45,7 @@ The full API documentation can be found here: [API Documentation](https://docume
 - **Budget Routes**: `/api/{API_VERSION}/budget` - Budget management
 - **Goal Routes**: `/api/{API_VERSION}/goal` - Set and track financial goals
 - **Notification Routes**: `/api/{API_VERSION}/notification` - Real-time notifications
+- **Analytics & Reports routes**: `/api/{API_VERSION}/analytics` - Reports
 
 ## Installation
 
