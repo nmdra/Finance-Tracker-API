@@ -7,18 +7,20 @@ import {
     addSpentToBudget,
     getBudget,
 } from '../../controllers/budgetController.js';
-import { protect } from '../../middleware/authMiddleware.js';
+import { protect, regularOnly } from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Protected Routes (Require Authentication)
-router.route('').post(protect, addBudget);
+router.route('').post(protect, regularOnly, addBudget);
 router
     .route('/:id')
-    .get(protect, getBudget)
-    .put(protect, updateBudget)
-    .delete(protect, deleteBudget);
-router.route('/:id/remaining').get(protect, getRemainingBudgetPercentage);
-router.route('/:id/spent').post(protect, addSpentToBudget);
+    .get(protect, regularOnly, getBudget)
+    .put(protect, regularOnly, updateBudget)
+    .delete(protect, regularOnly, deleteBudget);
+router
+    .route('/:id/remaining')
+    .get(protect, regularOnly, getRemainingBudgetPercentage);
+router.route('/:id/spent').post(protect, regularOnly, addSpentToBudget);
 
 export default router;

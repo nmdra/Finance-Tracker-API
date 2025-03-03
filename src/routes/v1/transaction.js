@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 import {
     addTransaction,
     getTransactions,
@@ -6,13 +6,21 @@ import {
     updateTransaction,
     deleteTransaction,
     currencyConverter,
-} from "../../controllers/transactionController.js";
-import { protect } from "../../middleware/authMiddleware.js";
+} from '../../controllers/transactionController.js';
+import { protect, regularOnly } from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Protected Routes (Require Authentication)
-router.route("").post(protect, addTransaction).get(protect, getTransactions);
-router.route("/currency").get(protect, currencyConverter)
-router.route("/:id").get(protect, getTransactionById).put(protect, updateTransaction).delete(protect, deleteTransaction)
+router
+    .route('')
+    .post(protect, regularOnly, addTransaction)
+    .get(protect, regularOnly, getTransactions);
+router.route('/currency').get(protect, regularOnly, currencyConverter);
+router
+    .route('/:id')
+    .get(protect, regularOnly, getTransactionById)
+    .put(protect, regularOnly, updateTransaction)
+    .delete(protect, regularOnly, deleteTransaction);
+
 export default router;
