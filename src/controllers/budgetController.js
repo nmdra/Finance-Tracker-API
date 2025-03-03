@@ -221,12 +221,9 @@ export const addSpentToBudget = async (req, res, next) => {
 
         const now = new Date();
         if (now > budget.endDate)
-            return res
-                .status(StatusCodes.BAD_REQUEST)
-                .json({
-                    message:
-                        'Cannot add spent amount. Budget period has ended.',
-                });
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Cannot add spent amount. Budget period has ended.',
+            });
 
         // Convert spent amount to budget's currency
         if (budget.currency !== currency)
