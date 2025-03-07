@@ -54,14 +54,14 @@ The full API documentation can be found here: [API Documentation](https://docume
 - Node.js
 - Docker (for running services)
 
-### Clone the repository
+#### Clone the repository
 
 ```bash
 git clone https://github.com/nmdra/Finance-Tracker-API.git
 cd Finance-Tracker-API
 ```
 
-### Environment variables
+#### Environment variables
 
 Create a `.env` file in the root directory based on [.env.example](./.env.example)
 ```bash
@@ -70,7 +70,7 @@ DB_PASSWORD=yourMongoDBPassword
 API_VERSION=v1
 ```
 
-### Running the application
+#### Running the application
 
 To start the application in development mode:
 ```bash
@@ -82,6 +82,14 @@ This will start the API Services, MongoDB, Redis, and the MongoDB Dashboard.
 - **db**: MongoDB database container
 - **db-dashboard**: MongoDB Express dashboard for managing the database
 - **redis**: Redis cache for the application
+
+### Testing
+
+Run following command after running `docker compose up`:
+
+```shell
+docker compose exec app npm test
+```
 
 ---
 

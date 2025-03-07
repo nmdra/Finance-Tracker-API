@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install development dependencies separately
-RUN npm install -g nodemon && npm install --omit=dev --verbose
+RUN npm install -g nodemon && npm install --verbose
 
 COPY ./src .
 
