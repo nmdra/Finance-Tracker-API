@@ -1,7 +1,7 @@
-import { Goal } from "../models/goalModel.js";
-import { convertCurrency } from "../utils/currencyConverter.js";
-import { StatusCodes } from "http-status-codes";
-import { logger } from "../middleware/logger.js";
+import { Goal } from '../models/goalModel.js';
+import { convertCurrency } from '../utils/currencyConverter.js';
+import { StatusCodes } from 'http-status-codes';
+import { logger } from '../middleware/logger.js';
 
 /**
  * @desc    Add a new financial goal
@@ -10,15 +10,30 @@ import { logger } from "../middleware/logger.js";
  */
 export const addGoal = async (req, res, next) => {
     try {
-        const { title, targetAmount, currency, deadline, allocationCategories, allocationPercentage } = req.body;
+        const {
+            title,
+            targetAmount,
+            currency,
+            deadline,
+            allocationCategories,
+            allocationPercentage,
+        } = req.body;
         const userId = req.user.id;
 
         if (!title || !targetAmount || !currency) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: "Title, targetAmount, and currency are required." });
+            return res
+                .status(StatusCodes.BAD_REQUEST)
+                .json({
+                    message: 'Title, targetAmount, and currency are required.',
+                });
         }
 
         if (allocationPercentage < 0 || allocationPercentage > 100) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: "Allocation percentage must be between 0 and 100." });
+            return res
+                .status(StatusCodes.BAD_REQUEST)
+                .json({
+                    message: 'Allocation percentage must be between 0 and 100.',
+                });
         }
 
         // Convert goal target amount to base currency
@@ -51,28 +66,48 @@ export const addGoal = async (req, res, next) => {
  */
 export const updateGoal = async (req, res, next) => {
     try {
-        const { title, targetAmount, currency, deadline, allocationCategories, allocationPercentage } = req.body;
+        const {
+            title,
+            targetAmount,
+            currency,
+            deadline,
+            allocationCategories,
+            allocationPercentage,
+        } = req.body;
         const goal = await Goal.findById(req.params.id);
 
         if (!goal) {
-            return res.status(StatusCodes.NOT_FOUND).json({ message: "Goal not found." });
+            return res
+                .status(StatusCodes.NOT_FOUND)
+                .json({ message: 'Goal not found.' });
         }
 
         if (goal.userId.toString() !== req.user.id) {
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized action." });
+            return res
+                .status(StatusCodes.UNAUTHORIZED)
+                .json({ message: 'Unauthorized action.' });
         }
 
         if (title) goal.title = title;
         if (currency) goal.currency = currency;
         if (targetAmount) {
             goal.targetAmount = targetAmount;
-            goal.baseAmount = await convertCurrency(targetAmount, currency || goal.currency);
+            goal.baseAmount = await convertCurrency(
+                targetAmount,
+                currency || goal.currency
+            );
         }
         if (deadline) goal.deadline = deadline;
-        if (allocationCategories) goal.allocationCategories = allocationCategories;
+        if (allocationCategories)
+            goal.allocationCategories = allocationCategories;
         if (allocationPercentage !== undefined) {
             if (allocationPercentage < 0 || allocationPercentage > 100) {
-                return res.status(StatusCodes.BAD_REQUEST).json({ message: "Allocation percentage must be between 0 and 100." });
+                return res
+                    .status(StatusCodes.BAD_REQUEST)
+                    .json({
+                        message:
+                            'Allocation percentage must be between 0 and 100.',
+                    });
             }
             goal.allocationPercentage = allocationPercentage;
         }
@@ -95,15 +130,21 @@ export const deleteGoal = async (req, res, next) => {
         const goal = await Goal.findById(req.params.id);
 
         if (!goal) {
-            return res.status(StatusCodes.NOT_FOUND).json({ message: "Goal not found." });
+            return res
+                .status(StatusCodes.NOT_FOUND)
+                .json({ message: 'Goal not found.' });
         }
 
         if (goal.userId.toString() !== req.user.id) {
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized action." });
+            return res
+                .status(StatusCodes.UNAUTHORIZED)
+                .json({ message: 'Unauthorized action.' });
         }
 
         await goal.deleteOne();
-        res.status(StatusCodes.OK).json({ message: "Goal deleted successfully." });
+        res.status(StatusCodes.OK).json({
+            message: 'Goal deleted successfully.',
+        });
     } catch (error) {
         logger.error(`Failed to delete goal: ${error.message}`);
         next(error);
@@ -120,15 +161,21 @@ export const getGoalProgress = async (req, res, next) => {
         const goal = await Goal.findById(req.params.id);
 
         if (!goal) {
-            return res.status(StatusCodes.NOT_FOUND).json({ message: "Goal not found." });
+            return res
+                .status(StatusCodes.NOT_FOUND)
+                .json({ message: 'Goal not found.' });
         }
 
         if (goal.userId.toString() !== req.user.id) {
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized action." });
+            return res
+                .status(StatusCodes.UNAUTHORIZED)
+                .json({ message: 'Unauthorized action.' });
         }
 
         const progress = (goal.savedAmount / goal.targetAmount) * 100;
-        res.status(StatusCodes.OK).json({ progressPercentage: progress.toFixed(2) });
+        res.status(StatusCodes.OK).json({
+            progressPercentage: progress.toFixed(2),
+        });
     } catch (error) {
         logger.error(`Failed to get goal progress: ${error.message}`);
         next(error);
@@ -146,11 +193,15 @@ export const addSavingsToGoal = async (req, res, next) => {
         const goal = await Goal.findById(req.params.id);
 
         if (!goal) {
-            return res.status(StatusCodes.NOT_FOUND).json({ message: "Goal not found." });
+            return res
+                .status(StatusCodes.NOT_FOUND)
+                .json({ message: 'Goal not found.' });
         }
 
         if (goal.userId.toString() !== req.user.id) {
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized action." });
+            return res
+                .status(StatusCodes.UNAUTHORIZED)
+                .json({ message: 'Unauthorized action.' });
         }
 
         const updatedGoal = await updateGoalSavings(goal, amount, currency);
@@ -167,14 +218,12 @@ export const addSavingsToGoal = async (req, res, next) => {
  * @param   {Object} transaction - The income transaction
  */
 export const autoAllocateToGoals = async (transaction) => {
-    console.log(transaction)
-
     try {
-        if (transaction.type !== "income") return;
+        if (transaction.type !== 'income') return;
 
         const userId = transaction.user;
         if (!userId) {
-            logger.warn("Transaction is missing user information.");
+            logger.warn('Transaction is missing user information.');
             return;
         }
 
@@ -192,15 +241,25 @@ export const autoAllocateToGoals = async (transaction) => {
                 goal.allocationPercentage > 0 &&
                 !goal.isCompleted
             ) {
-                let allocatedAmount = (transaction.amount * goal.allocationPercentage) / 100;
+                let allocatedAmount =
+                    (transaction.amount * goal.allocationPercentage) / 100;
 
-                if (goal.currency !== transaction.currency) allocatedAmount = await convertCurrency(allocatedAmount, transaction.currency, goal.currency);
+                if (goal.currency !== transaction.currency)
+                    allocatedAmount = await convertCurrency(
+                        allocatedAmount,
+                        transaction.currency,
+                        goal.currency
+                    );
 
                 await updateGoalSavings(goal, allocatedAmount, goal.currency);
 
-                await createNotification(userId, "goal_reminder", `Allocate ${allocatedAmount} ${goal.currency} to  ${goal.title}`);
+                await createNotification(
+                    userId,
+                    'goal_reminder',
+                    `Allocate ${allocatedAmount} ${goal.currency} to  ${goal.title}`
+                );
 
-                logger.info(`allocate to Goal: ${goal._id}`)
+                logger.info(`allocate to Goal: ${goal._id}`);
             }
         }
     } catch (error) {
@@ -217,7 +276,11 @@ export const autoAllocateToGoals = async (transaction) => {
  */
 export const updateGoalSavings = async (goal, amount, currency) => {
     if (goal.currency !== currency) {
-        const convertedAmount = await convertCurrency(amount, currency, goal.currency);
+        const convertedAmount = await convertCurrency(
+            amount,
+            currency,
+            goal.currency
+        );
         amount = parseFloat(convertedAmount);
     }
 
@@ -225,9 +288,17 @@ export const updateGoalSavings = async (goal, amount, currency) => {
 
     if (goal.savedAmount >= goal.targetAmount) {
         goal.isCompleted = true;
-        await createNotification(goal.userId, "goal_reminder", `Congratulations! You've completed your goal: ${goal.title}`);
+        await createNotification(
+            goal.userId,
+            'goal_reminder',
+            `Congratulations! You've completed your goal: ${goal.title}`
+        );
     } else if (goal.savedAmount >= goal.targetAmount * 0.9) {
-        await createNotification(goal.userId, "goal_reminder", `You're close to reaching your goal: ${goal.title}`);
+        await createNotification(
+            goal.userId,
+            'goal_reminder',
+            `You're close to reaching your goal: ${goal.title}`
+        );
     }
 
     await goal.save();
