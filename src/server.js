@@ -25,6 +25,7 @@ import './jobs/automateReport.js';
 
 const PORT = process.env.PORT || 5000;
 const API_VERSION = process.env.API_VERSION || 'v1';
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const app = express();
 
@@ -35,7 +36,7 @@ app.use(helmet());
 // CORS (Allow only specific domains)
 app.use(
     cors({
-        origin: ['https://your-frontend.com'], // Change to your frontend domain
+        origin: [FRONTEND_URL], // Change to your frontend domain
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     })

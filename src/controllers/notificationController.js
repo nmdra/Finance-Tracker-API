@@ -22,9 +22,10 @@ export const getNotifications = async (req, res, next) => {
 
         const query = {}; // Initialize query object
 
-        // If user is not an admin, filter by user ID
+        console.log(req.user.memberType);
+        // // If user is not an admin, filter by user ID
         if (req.user.memberType !== 'admin') {
-            query.user = req.user.id;
+            query.userId = req.user.id;
         }
 
         if (markAsRead !== undefined) query.isRead = markAsRead === 'true'; // Convert string to boolean
@@ -50,6 +51,16 @@ export const getNotifications = async (req, res, next) => {
             Notification.countDocuments(query), // Get total count
         ]);
 
+        const notificationsWithReadURL = notifications.map((notification) => ({
+            ...notification.toObject(),
+            links: {
+                markAsRead: {
+                    href: `/api/v1/notification/${notification._id}/read`,
+                    method: 'PUT', // Since you're marking the notification as read using a PUT request
+                },
+            },
+        }));
+
         logger.info(
             `Fetched ${notifications.length} notifications (Page: ${pageNumber}, Limit: ${pageSize}, Total: ${totalCount})`
         );
@@ -58,13 +69,7 @@ export const getNotifications = async (req, res, next) => {
             total: totalCount,
             page: pageNumber,
             totalPages: Math.ceil(totalCount / pageSize),
-            notifications,
-            links: {
-                self: {
-                    href: `/api/${API_VERSION}/notification`,
-                    method: 'GET',
-                },
-            },
+            notificationsWithReadURL,
         });
     } catch (error) {
         logger.error(`Failed to get notifications: ${error.message}`);
