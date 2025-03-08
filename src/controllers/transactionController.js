@@ -82,9 +82,36 @@ export const addTransaction = async (req, res) => {
 
             res.status(StatusCodes.CREATED).json({
                 transactionId: savedTransaction.transactionId,
+                links: {
+                    self: {
+                        href: `/api/v1/transactions/${savedTransaction._id}`,
+                        method: 'GET',
+                        description: 'Retrieve details of this transaction',
+                    },
+                    allTransactions: {
+                        href: `/api/v1/transactions`,
+                        method: 'GET',
+                        description: 'Retrieve all transactions',
+                    },
+                    updateTransaction: {
+                        href: `/api/v1/transactions/${savedTransaction._id}`,
+                        method: 'PUT',
+                        description: 'Update this transaction',
+                    },
+                    deleteTransaction: {
+                        href: `/api/v1/transactions/${savedTransaction._id}`,
+                        method: 'DELETE',
+                        description: 'Delete this transaction',
+                    },
+                    notifications: {
+                        href: `/api/v1/notifications/`,
+                        method: 'GET',
+                        description: "Retrieve user's notifications",
+                    },
+                },
             });
         } catch (error) {
-            logger.error(`error while saving transaction: ${error.message}`);
+            logger.error(`Error while saving transaction: ${error.message}`);
             res.status(StatusCodes.BAD_REQUEST).json({ error: error.message });
         }
     } catch (error) {

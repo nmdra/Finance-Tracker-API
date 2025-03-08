@@ -4,6 +4,8 @@ import { StatusCodes } from 'http-status-codes';
 import { logger } from '../middleware/logger.js';
 import { createNotification } from '../middleware/notification.js';
 
+const API_VERSION = process.env.API_VERSION;
+
 /**
  * @desc    Add a new budget
  * @route   POST /api/v1/budgets
@@ -22,15 +24,17 @@ export const addBudget = async (req, res, next) => {
             !currency ||
             !startDate ||
             !endDate
-        )
+        ) {
             return res
                 .status(StatusCodes.BAD_REQUEST)
                 .json({ message: 'All fields are required.' });
+        }
 
-        if (new Date(startDate) >= new Date(endDate))
+        if (new Date(startDate) >= new Date(endDate)) {
             return res
                 .status(StatusCodes.BAD_REQUEST)
                 .json({ message: 'End date must be after start date.' });
+        }
 
         // Convert budget to base currency
         const baseAmount = await convertCurrency(monthlyLimit, currency);
@@ -48,10 +52,38 @@ export const addBudget = async (req, res, next) => {
         });
 
         await budget.save();
+
         res.status(StatusCodes.CREATED).json({
             title: budget.title,
             id: budget._id,
             monthlyLimit: budget.monthlyLimit,
+            links: {
+                self: {
+                    href: `/api/v1/budgets/${budget._id}`,
+                    method: 'GET',
+                    description: 'Retrieve budget details',
+                },
+                updateBudget: {
+                    href: `/api/v1/budgets/${budget._id}`,
+                    method: 'PUT',
+                    description: 'Update this budget',
+                },
+                deleteBudget: {
+                    href: `/api/v1/budgets/${budget._id}`,
+                    method: 'DELETE',
+                    description: 'Delete this budget',
+                },
+                remainingBudget: {
+                    href: `/api/v1/budgets/${budget._id}/remaining`,
+                    method: 'GET',
+                    description: 'Get remaining budget percentage',
+                },
+                addSpent: {
+                    href: `/api/v1/budgets/${budget._id}/spent`,
+                    method: 'POST',
+                    description: 'Add spent amount to budget',
+                },
+            },
         });
     } catch (error) {
         logger.error(`Failed to add budget: ${error.message}`);

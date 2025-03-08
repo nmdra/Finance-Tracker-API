@@ -2,6 +2,8 @@ import { Notification } from '../models/notificationModel.js';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../middleware/logger.js';
 
+const API_VERSION = process.env.API_VERSION;
+
 /**
  * @desc    Get filtered notifications for a user
  * @route   GET /api/v1/notifications
@@ -57,6 +59,12 @@ export const getNotifications = async (req, res, next) => {
             page: pageNumber,
             totalPages: Math.ceil(totalCount / pageSize),
             notifications,
+            links: {
+                self: {
+                    href: `/api/${API_VERSION}/notification`,
+                    method: 'GET',
+                },
+            },
         });
     } catch (error) {
         logger.error(`Failed to get notifications: ${error.message}`);
