@@ -21,7 +21,7 @@ CMD ["npm", "run", "dev"]
 # Production image
 
 # Builder Stage
-FROM base AS production
+FROM base AS builder
 
 WORKDIR /app
 
@@ -33,7 +33,8 @@ RUN npm install --only=production --verbose
 COPY ./src .
 
 # Switch to a distroless image
-FROM gcr.io/distroless/nodejs22-debian12 AS distroless
+# FROM gcr.io/distroless/nodejs22-debian12 AS distroless
+FROM node:22-alpine3.20 AS production 
 
 LABEL org.opencontainers.image.title="finapi"
 LABEL org.opencontainers.image.description="Financial Tracker API."
@@ -44,7 +45,7 @@ LABEL org.opencontainers.image.source="https://github.com/nmdra/Finance-Tracker-
 WORKDIR /app
 
 # Copy only necessary files from the previous production image (including node_modules)
-COPY --from=production /app /app
+COPY --from=builder /app /app
 
 USER nonroot
 
