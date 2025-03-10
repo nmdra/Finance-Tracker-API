@@ -7,7 +7,6 @@ import path from 'path';
 import { sendEmail } from '../middleware/email.js';
 import { StatusCodes } from 'http-status-codes';
 import dayjs from 'dayjs';
-import redis from '../config/redis.js';
 
 /**
  * @desc    Get income vs expenses report
@@ -23,14 +22,10 @@ export const getIncomeVsExpenses = async (req, res, next) => {
             date: { $gte: new Date(startDate), $lte: new Date(endDate) },
         };
 
-        console.log('Match Criteria:', matchCriteria);
-
         const incomeVsExpenses = await Transaction.aggregate([
             { $match: matchCriteria },
             { $group: { _id: '$type', total: { $sum: '$amount' } } },
         ]);
-
-        console.log('Aggregation Result:', incomeVsExpenses);
 
         // Default structure
         const result = {
@@ -111,11 +106,9 @@ export const sendFinancialReport = async (
         );
 
         if (!transactions.length) {
-            return res
-                .status(StatusCodes.NOT_FOUND)
-                .json({
-                    message: 'No transactions found for the selected period.',
-                });
+            return res.status(StatusCodes.NOT_FOUND).json({
+                message: 'No transactions found for the selected period.',
+            });
         }
 
         const pdfPath = await generateFinancialReport(

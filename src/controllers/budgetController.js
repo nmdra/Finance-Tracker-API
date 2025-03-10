@@ -8,7 +8,7 @@ const API_VERSION = process.env.API_VERSION;
 
 /**
  * @desc    Add a new budget
- * @route   POST /api/v1/budgets
+ * @route   POST /api/${API_VERSION}/budgets
  * @access  Private
  */
 export const addBudget = async (req, res, next) => {
@@ -59,27 +59,27 @@ export const addBudget = async (req, res, next) => {
             monthlyLimit: budget.monthlyLimit,
             links: {
                 self: {
-                    href: `/api/v1/budgets/${budget._id}`,
+                    href: `/api/${API_VERSION}/budget/${budget._id}`,
                     method: 'GET',
                     description: 'Retrieve budget details',
                 },
                 updateBudget: {
-                    href: `/api/v1/budgets/${budget._id}`,
+                    href: `/api/${API_VERSION}/budget/${budget._id}`,
                     method: 'PUT',
                     description: 'Update this budget',
                 },
                 deleteBudget: {
-                    href: `/api/v1/budgets/${budget._id}`,
+                    href: `/api/${API_VERSION}/budget/${budget._id}`,
                     method: 'DELETE',
                     description: 'Delete this budget',
                 },
                 remainingBudget: {
-                    href: `/api/v1/budgets/${budget._id}/remaining`,
+                    href: `/api/${API_VERSION}/budget/${budget._id}/remaining`,
                     method: 'GET',
                     description: 'Get remaining budget percentage',
                 },
                 addSpent: {
-                    href: `/api/v1/budgets/${budget._id}/spent`,
+                    href: `/api/${API_VERSION}/budget/${budget._id}/spent`,
                     method: 'POST',
                     description: 'Add spent amount to budget',
                 },
@@ -93,7 +93,7 @@ export const addBudget = async (req, res, next) => {
 
 /**
  * @desc    Update an existing budget
- * @route   PUT /api/v1/budgets/:id
+ * @route   PUT /api/${API_VERSION}/budgets/:id
  * @access  Private
  */
 export const updateBudget = async (req, res, next) => {
@@ -143,7 +143,7 @@ export const updateBudget = async (req, res, next) => {
 
 /**
  * @desc    Get a budget
- * @route   GET /api/v1/budgets/:id
+ * @route   GET /api/${API_VERSION}/budgets/:id
  * @access  Private
  */
 export const getBudget = async (req, res, next) => {
@@ -172,7 +172,7 @@ export const getBudget = async (req, res, next) => {
 
 /**
  * @desc    Delete a budget
- * @route   DELETE /api/v1/budgets/:id
+ * @route   DELETE /api/${API_VERSION}/budgets/:id
  * @access  Private
  */
 export const deleteBudget = async (req, res, next) => {
@@ -201,7 +201,7 @@ export const deleteBudget = async (req, res, next) => {
 
 /**
  * @desc    Get remaining budget percentage
- * @route   GET /api/v1/budgets/:id/remaining
+ * @route   GET /api/${API_VERSION}/budgets/:id/remaining
  * @access  Private
  */
 export const getRemainingBudgetPercentage = async (req, res, next) => {
@@ -232,7 +232,7 @@ export const getRemainingBudgetPercentage = async (req, res, next) => {
 
 /**
  * @desc    Add spent amount to budget (linked with transactions)
- * @route   POST /api/v1/budgets/:id/spent
+ * @route   POST /api/${API_VERSION}/budgets/:id/spent
  * @access  Private
  */
 
