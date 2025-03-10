@@ -32,9 +32,7 @@ RUN npm install --only=production --verbose
 
 COPY ./src .
 
-# Switch to a distroless image
-FROM gcr.io/distroless/nodejs22-debian12 AS production
-# FROM node:22-alpine3.20 AS production 
+FROM cgr.dev/chainguard/node:latest AS production
 
 LABEL org.opencontainers.image.title="finapi"
 LABEL org.opencontainers.image.description="Financial Tracker API."
@@ -42,11 +40,14 @@ LABEL org.opencontainers.image.authors="Nimendra <nimendraonline@gmail.com>"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.source="https://github.com/nmdra/Finance-Tracker-API"
 
-# Copy only necessary files from the previous production image (including node_modules)
-COPY --from=builder /app /app
+ENV NODE_ENV=production
 
 WORKDIR /app
 
+# Copy only necessary files from the builder stage
+COPY --from=builder /app .
+
 EXPOSE 5000
 
-CMD ["server.js"]
+# Start the application
+CMD ["node", "server.js"]
