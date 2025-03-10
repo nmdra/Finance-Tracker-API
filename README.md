@@ -16,10 +16,10 @@
 - [Finance Tracker API](#finance-tracker-api)
   - [Features](#features)
   - [Libraries and Frameworks](#libraries-and-frameworks)
-    - [Security Features](#security-features)
-  - [API](#api)
-  - [Installation](#installation)
-    - [Prerequisites](#prerequisites)
+    - [🛡 Security Features](#-security-features)
+  - [🌐 API](#-api)
+  - [🏗 Development Setup](#-development-setup)
+      - [Prerequisites](#prerequisites)
       - [Clone the repository](#clone-the-repository)
       - [Environment variables](#environment-variables)
       - [Running the application](#running-the-application)
@@ -35,7 +35,7 @@
 *A comprehensive API designed to manage and track personal finances. This API includes features for user authentication, transaction management, budget tracking, goal setting, and real-time notifications. It is built with **Node.js, Express, MongoDB, and Redis**.*
 
 > [!IMPORTANT]
-> The **Docker Production Image** is available for use at: [Production Image on GitHub Container Registry](https://github.com/nmdra/Finance-Tracker-API/pkgs/container/finapi).
+> The **Docker Production Image** is available for use at: [GitHub Container Registry](https://github.com/nmdra/Finance-Tracker-API/pkgs/container/finapi).
 >
 > For detailed deployment instructions, please refer to the [Production Deployment](#-production-deployment) section.
 
@@ -63,23 +63,22 @@
 9. **[Nodemailer + MailTrap](https://mailtrap.io/blog/sending-emails-with-nodemailer/#Send-HTML-email)** - Email Handling.
 10. **[Croner](https://croner.56k.guru/)** - Job Scheduling.
 
-### Security Features  
+### 🛡 Security Features  
+
+>[!NOTE]
+> The production Docker image uses **[Chainguard Images](https://images.chainguard.dev/directory/image/node/overview)**, a secure, minimal container image for **better security** and a **lower attack surface**.  
+>
+> **[Trivy Vulnerability Scanning](https://trivy.dev/latest/)** is integrated into the GitHub Actions to **scan for vulnerabilities** in the Docker image before deployment.  
 
 - **Authentication & Authorization** → Uses **[JWT](https://github.com/auth0/node-jsonwebtoken)** for secure authentication and **[bcryptjs](https://github.com/dcodeIO/bcrypt.js/)** for password hashing.  
 - **Input Validation & Sanitization** → Implements **[express-mongo-sanitize](https://github.com/fiznool/express-mongo-sanitize)** to prevent NoSQL injections and **[helmet](https://helmetjs.github.io/)** for security headers.  
 - **Rate Limiting & Logging** → Uses **[express-rate-limit](https://github.com/nfriedly/express-rate-limit)** to prevent abuse and **[Pino](https://github.com/pinojs/pino)** for high-performance logging.  
 - **Testing & Mocking** → Includes **[Chai](https://www.chaijs.com/)**, **[Mocha](https://mochajs.org/)**, and **[Nock](https://github.com/nock/nock)** for API testing.  
 
->[!NOTE]
-> The production Docker image uses **[Chainguard Images](https://images.chainguard.dev/directory/image/node/overview)**, a secure, minimal container image for **better security** and a **lower attack surface**.  
->
-> **[Trivy Vulnerability Scanning](https://trivy.dev/latest/)** is integrated into the GitHub Actions to **scan for vulnerabilities** in the Docker image before deployment.  
-> 
-
-## API
+## 🌐 API
 
 >[!TIP]
-> The full API documentation can be found here 👉 **[API Documentation](https://documenter.getpostman.com/view/33227780/2sAYdoF7xS)**
+> The full API documentation can be found here 👉 **[documenter.getpostman.com/view/33227780/2sAYdoF7xS](https://documenter.getpostman.com/view/33227780/2sAYdoF7xS)**
 
 - **Health Check**: `/api/{API_VERSION}/health` - Check server status
 - **User Routes**: `/api/{API_VERSION}/user` - User registration and authentication
@@ -89,12 +88,12 @@
 - **Notification Routes**: `/api/{API_VERSION}/notification` - Real-time notifications
 - **Analytics & Reports routes**: `/api/{API_VERSION}/analytics` - Reports
 
-## Installation
+## 🏗 Development Setup
 
-### Prerequisites
+#### Prerequisites
 
 - Node.js
-- Docker (for running services)
+- Docker
 
 #### Clone the repository
 
@@ -111,7 +110,7 @@ DB_USERNAME=yourMongoDBUsername
 DB_PASSWORD=yourMongoDBPassword
 API_VERSION=v1
 ```
-Get Exchange-API Key : https://www.exchangerate-api.com/
+**Get Exchange-API Key : https://www.exchangerate-api.com/**
 
 #### Running the application
 
@@ -119,7 +118,7 @@ To start the application in development mode:
 ```bash
 docker-compose up
 ```
-This will start the API Services, MongoDB, Redis, and the MongoDB Dashboard.
+This will start the API Service, MongoDB, Redis, and the MongoDB Dashboard.
 
 - **app**: Node.js application container
 - **db**: MongoDB database container
@@ -157,8 +156,8 @@ docker-compose -f docker-compose-prod.yml up -d
 docker-compose -f docker-compose-prod.yml down
 ```
 
-
 ### Health Check
+
 Verify that the API is running by checking the **health check endpoint**:  
 ```sh
 curl http://localhost:5000/api/v1/health
@@ -171,9 +170,9 @@ Expected Response:
     "timestamp": "2025-03-10T05:05:11.017Z"
 }
 ```
----
 
 ### Logs & Monitoring
+
 To check the logs of your running container:  
 ```sh
 docker logs -f finance-api
