@@ -1,6 +1,9 @@
 import { StatusCodes } from 'http-status-codes';
 import User from '../models/userModel.js';
 import { generateToken } from '../utils/generateToken.js';
+import { logger } from '../middleware/logger.js';
+
+const API_VERSION = process.env.API_VERSION;
 
 // @desc    Register a new user
 // @route   POST /api/v1/user
@@ -88,7 +91,6 @@ export const updateUser = async (req, res, next) => {
 
         // Save updated user
         const updatedUser = await user.save();
-        console.log(updatedUser);
 
         if (updatedUser) {
             res.status(StatusCodes.OK).json({
@@ -117,6 +119,13 @@ export const authUser = async (req, res, next) => {
             throw new Error('Email and password are required');
         }
         const user = await User.findOne({ email });
+
+        if (user.memberType !== 'regular') {
+            logger.warn(`Unauthorized Access`);
+            res.status(StatusCodes.UNAUTHORIZED).json({
+                message: 'Unauthorized Access.',
+            });
+        }
 
         if (user && (await user.matchPassword(password))) {
             generateToken(res, user._id);
@@ -148,13 +157,41 @@ export const logoutUser = (_req, res) => {
 };
 
 // @desc    Get user profile
-// @route   GET /api/v1/user/profile
+// @route   GET /api/v1/user/me
 // @access  Private
 export const getUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id).select('-password');
 
     if (user) {
-        res.json(user);
+        res.json({
+            user,
+            links: {
+                self: {
+                    href: `/api/${API_VERSION}/user/me`,
+                    method: 'GET',
+                },
+                transactions: {
+                    href: `/api/${API_VERSION}/transactions`,
+                    method: 'GET',
+                    description: "Retrieve user's financial transactions",
+                },
+                notifications: {
+                    href: `/api/v1/notification`,
+                    method: 'GET',
+                    description: "Retrieve user's notifications",
+                },
+                goals: {
+                    href: `/api/v1/goals/user`,
+                    method: 'GET',
+                    description: "Retrieve user's financial goals",
+                },
+                budgets: {
+                    href: `/api/v1/budgets/user`,
+                    method: 'GET',
+                    description: "Retrieve user's budget details",
+                },
+            },
+        });
     } else {
         res.status(StatusCodes.NOT_FOUND);
         throw new Error('User not found');
