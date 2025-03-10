@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { calculateEndDate } from '../utils/calcRecurrence.js';
+import { calculateEndDate } from '../../utils/calcRecurrence.js';
 
 describe('calculateEndDate Function', () => {
     it("should return the next day's date for daily recurrence", () => {

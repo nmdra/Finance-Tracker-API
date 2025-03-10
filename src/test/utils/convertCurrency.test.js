@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import nock from 'nock';
-import { convertCurrency } from '../utils/currencyConverter.js'; // Adjust path if needed
+import { convertCurrency } from '../../utils/currencyConverter.js'; // Adjust path if needed
 
 const API_KEY = process.env.EXCHANGE_RATE_API_KEY || 'test-api-key';
 const BASE_CURRENCY = process.env.BASE_CURRENCY || 'USD';

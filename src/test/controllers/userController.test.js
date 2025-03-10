@@ -1,8 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import User from '../models/userModel.js';
-import * as userController from '../controllers/userController.js';
-import { generateToken } from '../utils/generateToken.js';
+import User from '../../models/userModel.js';
+import * as userController from '../../controllers/userController.js';
 import { StatusCodes } from 'http-status-codes';
 
 describe('User Controller Tests', () => {
@@ -49,13 +48,11 @@ describe('User Controller Tests', () => {
             };
 
             sinon.stub(User, 'findOne').resolves(null);
-            sinon
-                .stub(User, 'create')
-                .resolves({
-                    _id: 'user123',
-                    name: 'John Doe',
-                    email: 'test@example.com',
-                });
+            sinon.stub(User, 'create').resolves({
+                _id: 'user123',
+                name: 'John Doe',
+                email: 'test@example.com',
+            });
 
             await userController.registerUser(req, res, next);
 

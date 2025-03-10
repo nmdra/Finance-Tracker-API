@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import jwt from 'jsonwebtoken';
-import { generateToken, tokenToVerify } from '../utils/generateToken.js'; // Adjust the path accordingly
+import { generateToken, tokenToVerify } from '../../utils/generateToken.js'; // Adjust the path accordingly
 
 describe('Auth Middleware', () => {
     describe('generateToken', () => {
