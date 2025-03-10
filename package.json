@@ -52,8 +52,10 @@
         "globals": "^15.6.0",
         "lefthook": "^1.11.2",
         "mocha": "^11.1.0",
+        "mongodb-memory-server": "^10.1.4",
         "nock": "^14.0.1",
         "prettier": "3.5.2",
-        "sinon": "^7.5.0"
+        "sinon": "^7.5.0",
+        "supertest": "^7.0.0"
     }
 }
