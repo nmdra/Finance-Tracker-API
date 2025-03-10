@@ -1,5 +1,5 @@
-import { Notification } from "../models/notificationModel.js";
-import { logger } from "./logger.js";
+import { Notification } from '../models/notificationModel.js';
+import { logger } from './logger.js';
 
 /**
  * Middleware to create a notification

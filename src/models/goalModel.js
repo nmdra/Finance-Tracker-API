@@ -1,10 +1,10 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const goalSchema = new mongoose.Schema(
     {
         userId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            ref: 'User',
             required: true,
         },
         title: {
@@ -24,9 +24,9 @@ const goalSchema = new mongoose.Schema(
             min: 0,
             validate: {
                 validator: function (value) {
-                    return typeof value === "number" && !isNaN(value);
+                    return typeof value === 'number' && !isNaN(value);
                 },
-                message: "Saved amount must be a valid number.",
+                message: 'Saved amount must be a valid number.',
             },
         },
         currency: {
@@ -62,4 +62,4 @@ const goalSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export const Goal = mongoose.model("Goal", goalSchema);
+export const Goal = mongoose.model('Goal', goalSchema);

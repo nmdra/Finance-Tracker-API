@@ -21,19 +21,15 @@ export const addGoal = async (req, res, next) => {
         const userId = req.user.id;
 
         if (!title || !targetAmount || !currency) {
-            return res
-                .status(StatusCodes.BAD_REQUEST)
-                .json({
-                    message: 'Title, targetAmount, and currency are required.',
-                });
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Title, targetAmount, and currency are required.',
+            });
         }
 
         if (allocationPercentage < 0 || allocationPercentage > 100) {
-            return res
-                .status(StatusCodes.BAD_REQUEST)
-                .json({
-                    message: 'Allocation percentage must be between 0 and 100.',
-                });
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Allocation percentage must be between 0 and 100.',
+            });
         }
 
         // Convert goal target amount to base currency
@@ -102,12 +98,9 @@ export const updateGoal = async (req, res, next) => {
             goal.allocationCategories = allocationCategories;
         if (allocationPercentage !== undefined) {
             if (allocationPercentage < 0 || allocationPercentage > 100) {
-                return res
-                    .status(StatusCodes.BAD_REQUEST)
-                    .json({
-                        message:
-                            'Allocation percentage must be between 0 and 100.',
-                    });
+                return res.status(StatusCodes.BAD_REQUEST).json({
+                    message: 'Allocation percentage must be between 0 and 100.',
+                });
             }
             goal.allocationPercentage = allocationPercentage;
         }

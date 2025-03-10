@@ -1,15 +1,15 @@
-import { Cron } from "croner";
-import { Transaction } from "../models/transactionModel.js";
-import { Notification } from "../models/notificationModel.js";
-import { logger } from "../middleware/logger.js";
-import dayjs from "dayjs";
+import { Cron } from 'croner';
+import { Transaction } from '../models/transactionModel.js';
+import { Notification } from '../models/notificationModel.js';
+import { logger } from '../middleware/logger.js';
+import dayjs from 'dayjs';
 
 // Function to check and notify users
 const checkRecurringTransactions = async () => {
     try {
         const now = dayjs();
-        const upcomingThreshold = now.add(1, "day").toDate(); // Look ahead 1 day
-        const missedThreshold = now.subtract(1, "day").toDate(); // Look back 1 day
+        const upcomingThreshold = now.add(1, 'day').toDate(); // Look ahead 1 day
+        const missedThreshold = now.subtract(1, 'day').toDate(); // Look back 1 day
 
         // Find upcoming transactions
         const upcomingTransactions = await Transaction.find({
@@ -41,7 +41,7 @@ const checkRecurringTransactions = async () => {
             });
         }
 
-        logger.info("Recurring transaction check completed.");
+        logger.info('Recurring transaction check completed.');
     } catch (error) {
         logger.error(`Error checking recurring transactions: ${error.message}`);
     }
@@ -49,12 +49,13 @@ const checkRecurringTransactions = async () => {
 
 // Schedule job to run every day at midnight
 
-new Cron("0 0 * * *", { timezone: "Asia/Colombo" }, async () => {
-
+new Cron('0 0 * * *', { timezone: 'Asia/Colombo' }, async () => {
     try {
-        logger.info("Running scheduled job: Checking recurring transactions...");
+        logger.info(
+            'Running scheduled job: Checking recurring transactions...'
+        );
         await checkRecurringTransactions();
-        logger.info("Scheduled job completed successfully.");
+        logger.info('Scheduled job completed successfully.');
     } catch (error) {
         logger.error(`Error in scheduled job: ${error.message}`);
     }

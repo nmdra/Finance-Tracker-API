@@ -15,7 +15,10 @@ const createAxiosInstance = (retries = 3, timeout = 10000) => {
             return retryCount * 1000; // Exponential backoff: 1s, 2s, 3s
         },
         retryCondition: (error) => {
-            return error.isAxiosError && (error.response?.status === 500 || error.code === 'ETIMEDOUT'); // Retry on specific conditions
+            return (
+                error.isAxiosError &&
+                (error.response?.status === 500 || error.code === 'ETIMEDOUT')
+            ); // Retry on specific conditions
         },
     });
 

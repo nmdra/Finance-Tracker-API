@@ -1,10 +1,10 @@
-import pino from "pino";
-import pinoHttp from "pino-http";
+import pino from 'pino';
+import pinoHttp from 'pino-http';
 
 const logger = pino({
-    level: process.env.LOG_LEVEL || "info",
+    level: process.env.LOG_LEVEL || 'info',
     transport: {
-        target: "pino-pretty",
+        target: 'pino-pretty',
         options: {
             colorize: true,
         },
@@ -24,21 +24,21 @@ const httpLogger = pinoHttp({
                 method: req.method,
                 url: req.url,
                 query: req.query,
-                params: req.params
+                params: req.params,
             };
         },
         res(res) {
             return {
-                statusCode: res.statusCode
+                statusCode: res.statusCode,
             };
-        }
+        },
     },
 
     autoLogging: {
         ignore(req) {
             return false; // Do not ignore any requests by default
-        }
-    }
+        },
+    },
 });
 
 export { logger, httpLogger };

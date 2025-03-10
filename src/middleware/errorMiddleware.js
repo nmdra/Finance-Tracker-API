@@ -15,7 +15,9 @@ const errorHandler = (err, req, res, next) => {
         statusCode = 404;
     }
 
-    req.log.error(`ERROR: ${message} - Status: ${statusCode} - Path: ${req.originalUrl}`);
+    req.log.error(
+        `ERROR: ${message} - Status: ${statusCode} - Path: ${req.originalUrl}`
+    );
 
     res.status(statusCode).json({
         message,
