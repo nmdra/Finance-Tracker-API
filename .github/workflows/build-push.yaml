@@ -3,8 +3,6 @@ name: Build and Publish Docker Image
 # Trigger the workflow on push or pull request to the main branch
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
   # pull_request:
