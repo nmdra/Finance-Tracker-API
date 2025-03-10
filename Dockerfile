@@ -47,8 +47,6 @@ WORKDIR /app
 # Copy only necessary files from the previous production image (including node_modules)
 COPY --from=builder /app /app
 
-USER nonroot
-
 EXPOSE 5000
 
-CMD ["server.js"]
+CMD ["node", "server.js"]
