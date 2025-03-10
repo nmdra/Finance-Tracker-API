@@ -3,6 +3,11 @@
 | Name                | Registration No | Batch            |
 |---------------------|-----------------|------------------|
 | Dharmasiri I.D.N.D  | IT22254320      | Y3S1.SE.WD.01    |
+---
+> [!NOTE]
+> This repository is a **mirrored version** of the main repository located at: [github.com/nmdra/Finance-Tracker-API](https://github.com/nmdra/Finance-Tracker-API).
+> 
+> Some features, such as **GitHub Actions** and **packaged builds**, are not available in this mirrored repo.For details on those features, please refer to the main repository.
 
 --- 
 
@@ -128,9 +133,6 @@ Run following command after running `docker compose up`:
 ```shell
 docker compose exec app npm test
 ```
-
-Here's an improved **Production** section for your GitHub **README** with clear **deployment instructions**:  
-
 ---
 
 ## 🚀 Production Deployment  
