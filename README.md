@@ -1,16 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/xIbq4TFL)
-
-| Name                | Registration No | Batch            |
-|---------------------|-----------------|------------------|
-| Dharmasiri I.D.N.D  | IT22254320      | Y3S1.SE.WD.01    |
----
-> [!NOTE]
-> This repository is a **mirrored version** of the main repository located at: [github.com/nmdra/Finance-Tracker-API](https://github.com/nmdra/Finance-Tracker-API).
-> 
-> Some features, such as **GitHub Actions** and **packaged builds**, are not available in this mirrored repo.For details on those features, please refer to the main repository.
-
---- 
-
 # Finance Tracker API
 
 - [Finance Tracker API](#finance-tracker-api)
