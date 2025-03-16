@@ -182,8 +182,8 @@ const createEmailBody = (user, startDate, endDate, summary, isHtml = true) => {
         Attached is your financial report for ${formattedDate}.
 
         Financial Summary:
-        - Total Income: $${summary.income.toFixed(2)}
-        - Total Expenses: $${summary.expenses.toFixed(2)}
+        - Total Income: Rs. ${summary.income.toFixed(2)}
+        - Total Expenses: Rs. ${summary.expenses.toFixed(2)}
 
         For a detailed breakdown, please see the attached PDF.
 
