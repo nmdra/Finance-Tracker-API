@@ -5,13 +5,17 @@ import {
     deleteGoal,
     getGoalProgress,
     addSavingsToGoal,
+    getAllGoals,
 } from '../../controllers/goalController.js';
 import { protect, regularOnly } from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Protected Routes (Require Authentication)
-router.route('').post(protect, regularOnly, addGoal);
+router
+    .route('')
+    .post(protect, regularOnly, addGoal)
+    .get(protect, regularOnly, getAllGoals);
 router
     .route('/:id')
     .put(protect, regularOnly, updateGoal)

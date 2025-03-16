@@ -2,6 +2,7 @@ import { Goal } from '../models/goalModel.js';
 import { convertCurrency } from '../utils/currencyConverter.js';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../middleware/logger.js';
+import { createNotification } from '../middleware/notification.js';
 
 /**
  * @desc    Add a new financial goal
@@ -48,7 +49,31 @@ export const addGoal = async (req, res, next) => {
         });
 
         await goal.save();
-        res.status(StatusCodes.CREATED).json(goal);
+
+        res.status(StatusCodes.CREATED).json({
+            goal: {
+                id: goal._id,
+                title: goal.title,
+                targetAmount: goal.targetAmount,
+                currency: goal.currency,
+                savedAmount: goal.savedAmount,
+                progress: (goal.savedAmount / goal.targetAmount) * 100,
+                links: [
+                    { rel: 'self', href: `/api/v1/goal/${goal._id}` },
+                    { rel: 'update', href: `/api/v1/goal/${goal._id}` },
+                    { rel: 'delete', href: `/api/v1/goal/${goal._id}` },
+                    {
+                        rel: 'addSavings',
+                        href: `/api/v1/goal/${goal._id}/savings`,
+                    },
+                    {
+                        rel: 'progress',
+                        href: `/api/v1/goal/${goal._id}/progress`,
+                    },
+                ],
+            },
+            links: [{ rel: 'getAllGoals', href: '/api/v1/goals' }],
+        });
     } catch (error) {
         logger.error(`Failed to add goal: ${error.message}`);
         next(error);
@@ -56,8 +81,54 @@ export const addGoal = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get all goals for a user
+ * @route   GET /api/v1/goals
+ * @access  Private
+ */
+export const getAllGoals = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const goals = await Goal.find({ userId });
+
+        if (!goals.length) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                message: 'No goals found for this user.',
+            });
+        }
+
+        // Generate hypermedia links for each goal
+        const goalsWithLinks = goals.map((goal) => ({
+            id: goal._id,
+            title: goal.title,
+            targetAmount: goal.targetAmount,
+            currency: goal.currency,
+            savedAmount: goal.savedAmount,
+            progress: (goal.savedAmount / goal.targetAmount) * 100,
+            links: [
+                { rel: 'self', href: `/api/v1/goal/${goal._id}` },
+                { rel: 'update', href: `/api/v1/goal/${goal._id}` },
+                { rel: 'delete', href: `/api/v1/goal/${goal._id}` },
+                { rel: 'addSavings', href: `/api/v1/goal/${goal._id}/savings` },
+                { rel: 'progress', href: `/api/v1/goal/${goal._id}/progress` },
+            ],
+        }));
+
+        res.status(StatusCodes.OK).json({
+            goals: goalsWithLinks,
+            links: [
+                { rel: 'createGoal', href: '/api/v1/goals' },
+                { rel: 'getAllGoals', href: '/api/v1/goals' },
+            ],
+        });
+    } catch (error) {
+        logger.error(`Failed to get all goals: ${error.message}`);
+        next(error);
+    }
+};
+
+/**
  * @desc    Update an existing goal
- * @route   PUT /api/v1/goals/:id
+ * @route   PUT /api/v1/goal/:id
  * @access  Private
  */
 export const updateGoal = async (req, res, next) => {
@@ -106,7 +177,30 @@ export const updateGoal = async (req, res, next) => {
         }
 
         await goal.save();
-        res.status(StatusCodes.OK).json(goal);
+
+        res.status(StatusCodes.OK).json({
+            goal: {
+                id: goal._id,
+                title: goal.title,
+                targetAmount: goal.targetAmount,
+                currency: goal.currency,
+                savedAmount: goal.savedAmount,
+                progress: (goal.savedAmount / goal.targetAmount) * 100,
+                links: [
+                    { rel: 'self', href: `/api/v1/goal/${goal._id}` },
+                    { rel: 'update', href: `/api/v1/goal/${goal._id}` },
+                    { rel: 'delete', href: `/api/v1/goal/${goal._id}` },
+                    {
+                        rel: 'addSavings',
+                        href: `/api/v1/goal/${goal._id}/savings`,
+                    },
+                    {
+                        rel: 'progress',
+                        href: `/api/v1/goal/${goal._id}/progress`,
+                    },
+                ],
+            },
+        });
     } catch (error) {
         logger.error(`Failed to update goal: ${error.message}`);
         next(error);
@@ -115,7 +209,7 @@ export const updateGoal = async (req, res, next) => {
 
 /**
  * @desc    Delete a financial goal
- * @route   DELETE /api/v1/goals/:id
+ * @route   DELETE /api/v1/goal/:id
  * @access  Private
  */
 export const deleteGoal = async (req, res, next) => {
@@ -146,7 +240,7 @@ export const deleteGoal = async (req, res, next) => {
 
 /**
  * @desc    Get goal progress in percentage
- * @route   GET /api/v1/goals/:id/progress
+ * @route   GET /api/v1/goal/:id/progress
  * @access  Private
  */
 export const getGoalProgress = async (req, res, next) => {
@@ -177,7 +271,7 @@ export const getGoalProgress = async (req, res, next) => {
 
 /**
  * @desc    Add savings to goal
- * @route   PUT /api/v1/goals/:id/savings
+ * @route   PUT /api/v1/goal/:id/savings
  * @access  Private
  */
 export const addSavingsToGoal = async (req, res, next) => {
@@ -204,6 +298,44 @@ export const addSavingsToGoal = async (req, res, next) => {
         logger.error(`Failed to update savings amount: ${error.message}`);
         next(error);
     }
+};
+
+/**
+ * @desc    Update goal savings and mark as completed if needed
+ * @param   {Object} goal - The goal object
+ * @param   {Number} amount - Amount to add
+ * @param   {String} currency - Currency of the amount
+ * @returns {Object} Updated goal
+ */
+const updateGoalSavings = async (goal, amount, currency) => {
+    if (currency !== goal.currency) {
+        amount = await convertCurrency(amount, currency, goal.currency);
+    }
+
+    goal.savedAmount += amount;
+    if (goal.savedAmount >= goal.targetAmount) {
+        goal.completed = true;
+    }
+
+    await goal.save();
+
+    return {
+        goal: {
+            id: goal._id,
+            title: goal.title,
+            targetAmount: goal.targetAmount,
+            savedAmount: goal.savedAmount,
+            progress: (goal.savedAmount / goal.targetAmount) * 100,
+            currency: goal.currency,
+            links: [
+                { rel: 'self', href: `/api/v1/goal/${goal._id}` },
+                { rel: 'update', href: `/api/v1/goal/${goal._id}` },
+                { rel: 'delete', href: `/api/v1/goal/${goal._id}` },
+                { rel: 'addSavings', href: `/api/v1/goal/${goal._id}/savings` },
+                { rel: 'progress', href: `/api/v1/goal/${goal._id}/progress` },
+            ],
+        },
+    };
 };
 
 /**
@@ -258,42 +390,4 @@ export const autoAllocateToGoals = async (transaction) => {
     } catch (error) {
         logger.error(`Failed to auto-allocate funds: ${error.message}`);
     }
-};
-
-/**
- * @desc    Update goal savings and mark as completed if needed
- * @param   {Object} goal - The goal object
- * @param   {Number} amount - Amount to add
- * @param   {String} currency - Currency of the amount
- * @returns {Object} Updated goal
- */
-export const updateGoalSavings = async (goal, amount, currency) => {
-    if (goal.currency !== currency) {
-        const convertedAmount = await convertCurrency(
-            amount,
-            currency,
-            goal.currency
-        );
-        amount = parseFloat(convertedAmount);
-    }
-
-    goal.savedAmount += amount;
-
-    if (goal.savedAmount >= goal.targetAmount) {
-        goal.isCompleted = true;
-        await createNotification(
-            goal.userId,
-            'goal_reminder',
-            `Congratulations! You've completed your goal: ${goal.title}`
-        );
-    } else if (goal.savedAmount >= goal.targetAmount * 0.9) {
-        await createNotification(
-            goal.userId,
-            'goal_reminder',
-            `You're close to reaching your goal: ${goal.title}`
-        );
-    }
-
-    await goal.save();
-    return goal;
 };
