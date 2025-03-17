@@ -95,7 +95,7 @@ const checkRecurringTransactions = async () => {
 };
 
 // Schedule job to run every day at midnight
-new Cron('*/30 * * * *', { timezone: 'Asia/Colombo' }, async () => {
+new Cron('*/5 * * * *', { timezone: 'Asia/Colombo' }, async () => {
     try {
         logger.info(
             'Running scheduled job: Checking recurring transactions...'

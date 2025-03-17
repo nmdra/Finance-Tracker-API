@@ -203,11 +203,11 @@ const createEmailBody = (user, startDate, endDate, summary, isHtml = true) => {
                 </tr>
                 <tr>
                     <td style="padding: 8px; border-bottom: 1px solid #ddd;">💰 Total Income</td>
-                    <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd; color: green;">$${summary.income.toFixed(2)}</td>
+                    <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd; color: green;">Rs. ${summary.income.toFixed(2)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px; border-bottom: 1px solid #ddd;">💸 Total Expenses</td>
-                    <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd; color: red;">$${summary.expenses.toFixed(2)}</td>
+                    <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd; color: red;">Rs. ${summary.expenses.toFixed(2)}</td>
                 </tr>
             </table>
             <p style="margin-top: 15px;">For a detailed breakdown, please find the attached PDF report.</p>
