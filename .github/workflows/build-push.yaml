@@ -38,11 +38,14 @@ jobs:
             username: ${{ github.actor }}  # Docker Hub username (use GitHub actor if using GHCR)
             password: ${{ secrets.GITHUB_TOKEN }}  # Docker Hub password (use GitHub token if using GHCR)
 
-      - name: Set short git commit SHA
-        id: vars
+      - name: Set Git Tag or Commit SHA
         run: |
-            calculatedSha=$(git rev-parse --short ${{ github.sha }})
-            echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+            if [[ "$GITHUB_REF" =~ refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+                echo "GIT_TAG=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+            else
+                calculatedSha=$(git rev-parse --short ${{ github.sha }})
+                echo "GIT_TAG=$calculatedSha" >> $GITHUB_ENV
+            fi
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -51,7 +54,7 @@ jobs:
           target: production
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/finapi:${{ env.COMMIT_SHORT_SHA }},ghcr.io/${{ github.repository_owner }}/finapi:latest 
+          tags: ghcr.io/${{ github.repository_owner }}/finapi:${{ env.COMMIT_SHORT_SHA }},ghcr.io/${{ github.repository_owner }}/finapi:${{ env.GIT_TAG }},  
           cache-from: type=gha
           cache-to: type=gha,mode=max     
       
