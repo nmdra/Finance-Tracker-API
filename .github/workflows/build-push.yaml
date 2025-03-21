@@ -54,7 +54,7 @@ jobs:
           target: production
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/finapi:${{ env.COMMIT_SHORT_SHA }},ghcr.io/${{ github.repository_owner }}/finapi:${{ env.GIT_TAG }},  
+          tags: ghcr.io/${{ github.repository_owner }}/finapi:latest,ghcr.io/${{ github.repository_owner }}/finapi:${{ env.GIT_TAG }},  
           cache-from: type=gha
           cache-to: type=gha,mode=max     
       
